@@ -261,16 +261,16 @@ r2ps:
 
 images:
   # Application images
-  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:v0.6.5-sirosid.4"
-  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:v0.6.5-sirosid.4"
-  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:v0.6.5-sirosid.4"
-  verifier: "ghcr.io/sirosfoundation/vc/verifier:v0.6.5-sirosid.4"
-  walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.6.1"
-  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.6.1"
+  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:v0.6.5-sirosid.5"
+  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:v0.6.5-sirosid.5"
+  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:v0.6.5-sirosid.5"
+  verifier: "ghcr.io/sirosfoundation/vc/verifier:v0.6.5-sirosid.5"
+  walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.7.1"
+  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.7.1"
   walletFrontendConfig: "ghcr.io/sirosfoundation/wallet-frontend:0.5.0-1-sirosid.8"
   walletFrontendNginx: "ghcr.io/nginx/nginx-unprivileged:1.29.8-alpine"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
-  pdp: "ghcr.io/sirosfoundation/go-trust:0dc98fb" # 0.6.0-ish
+  pdp: "ghcr.io/sirosfoundation/go-trust:0.9.0" # 0.6.0-ish
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
   # Init/sidecar images
   opsStackUtilities: "ghcr.io/sirosfoundation/ops_stack_utilities:0.2.0"
