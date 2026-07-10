@@ -1,0 +1,4 @@
+---
+reloader:
+  readOnlyRootFilesystem: true
+  reloadStrategy: annotations

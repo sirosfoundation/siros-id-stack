@@ -1,0 +1,175 @@
+features:
+  extraWallets:
+    - displayName: "Localhost Wallet"
+      url: "http://wallet.localhost"
+  credentialTypes:
+    "demo_1":
+      vct: urn:demo:1
+      vctm:
+        file: "config/demo/vctm_demo_1.json"
+      format: dc+sd-jwt
+      issuance:
+        authProvider: oidc
+        source: "datastore"
+        authOptions:
+          claims:
+            - given_name
+            - family_name
+            - birthdate
+    "demo_pid_rb_1_5":
+      vct: https://registry.siros.org/sirosfoundation/demo_pid_rb_1_5.vctm.json
+      vctm:
+        file: "config/demo/vctm_demo_pid_rb_1_5.json"
+      format: dc+sd-jwt
+      issuance:
+        authProvider: oidc
+        source: "datastore"
+        authOptions:
+          claims:
+            - given_name
+            - family_name
+            - birthdate
+    "pid_1_5":
+      vct: urn:eudi:pid:arf-1.5:1
+      vctm:
+        file: "config/demo/vctm_pid_arf_1_5.json"
+      format: dc+sd-jwt
+      issuance:
+        authProvider: oidc
+        source: "datastore"
+        authOptions:
+          claims:
+            - given_name
+            - family_name
+            - birthdate
+    "ehic":
+      vct: urn:eudi:ehic:1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_ehic.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate        
+    "diploma":
+      vct: urn:eudi:diploma:1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_diploma.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
+
+issuer:
+  identitymappingImport:
+    identities:
+      identity_mapping:
+        file: "config/demo/issuer_identity_mappings.json"
+    users:
+      - "100"
+      - "102"
+  datastoreImport:
+    documents: 
+      # max 1MB in total, use the API if you need more, since the feature is for quick testing.
+      # !!! credentials are only added on initialization of the database !!!
+      demo_pid_rb_1_5:
+        file: "config/demo/issuer_documents_demo_pid_rb_1_5.json"
+      ehic:
+        file: "config/demo/issuer_documents_ehic.json"
+      diploma:
+        file: "config/demo/issuer_documents_diploma.json"
+    users:
+      - "100"
+      - "102"
+  apiAuth:
+    jwks:
+      enabled: false
+      jwksData: ""
+      issuer: ""
+  authProviders:
+    oidc:
+      enabled: false
+      #issuerUrl: "https://demo-sso.common.siros.org/realms/demo"
+      #clientId: "demo-issuer-shared"
+      issuerUrl: ""
+      clientId: ""
+      scopes:
+        - openid
+        - profile
+        - email
+
+verifier:
+  presets:
+    "Demo: PID":
+      demo_pid_rb_1_5:
+        claims:
+          - path: ["given_name"]
+          - path: ["family_name"]
+          - path: ["birthdate"]
+    "Demo: PID + EHIC":
+      demo_pid_rb_1_5:
+        claims:
+          - path: ["personal_administrative_number"]
+          - path: ["document_number"]
+      ehic:
+        claims:
+          - path: ["personal_administrative_number"]
+          - path: ["document_number"]
+  presentationRequestTemplates: 
+    "pid_1_5_basic":
+      name: "PID ARF 1.5 - Basic Profile"
+      description: "Request basic personal identification data (PID ARF 1.5)"
+      version: "1.0"
+      oidc_scopes:
+        - "pid_1_5_basic"
+      dcql:
+        credentials:
+          - id: "pid_1_5"
+            format: "dc+sd-jwt"
+            meta:
+              vct_values:
+                - "urn:eudi:pid:arf-1.5:1"
+            claims:
+              - path: ["given_name"]
+              - path: ["family_name"]
+              - path: ["birthdate"]
+              - path: ["age_over_18"]
+              - path: ["nationality"]
+      claim_mappings:
+        "*": "*"
+      enabled: true
+    "demo_pid_rb_1_5_basic":
+      name: "Demo PID RB 1.5 - Basic Profile"
+      description: "Request basic personal identification data (Demo PID RB 1.5)"
+      version: "1.0"
+      oidc_scopes:
+        - "demo_pid_rb_1_5_basic"
+      dcql:
+        credentials:
+          - id: "demo_pid_rb_1_5"
+            format: "dc+sd-jwt"
+            meta:
+              vct_values:
+                - "https://registry.siros.org/sirosfoundation/demo_pid_rb_1_5.vctm.json"
+            claims:
+              - path: ["given_name"]
+              - path: ["family_name"]
+              - path: ["birthdate"]
+      claim_mappings:
+        given_name: "given_name"
+        family_name: "family_name"
+        birthdate: "birthdate"
+      enabled: true

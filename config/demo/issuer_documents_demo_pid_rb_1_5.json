@@ -1,0 +1,94 @@
+{
+  "100": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "demo_pid_rb_1_5",
+      "document_id": "document_id_demo_pid_rb_1_5_100",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_100"
+    ],
+    "document_data": {
+      "address": {
+        "country": "SE",
+        "formatted": "Tulegatan 11, Stockholm",
+        "house_number": "11",
+        "locality": "Stockholm",
+        "postal_code": "11353",
+        "region": "Stockholm",
+        "street_address": "Tulegatan"
+      },
+      "birth_family_name": "Mirren",
+      "birth_given_name": "Helen",
+      "birthdate": "1996-01-30",
+      "date_of_expiry": "2027-05-19T15:07:11+02:00",
+      "date_of_issuance": "2026-04-19T15:07:11+02:00",
+      "document_number": "doc-demo_pid_rb_1_5-100",
+      "email": "mirren@example.com",
+      "family_name": "Mirren",
+      "given_name": "Helen",
+      "issuing_authority": "SUNET",
+      "issuing_country": "SE",
+      "issuing_jurisdiction": "SUNET",
+      "nationalities": [
+        "SE"
+      ],
+      "personal_administrative_number": "pan-100",
+      "phone_number": "+46700000000",
+      "picture": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
+      "place_of_birth": {
+        "country": "SE",
+        "locality": "Tulegatan 11",
+        "region": "Stockholm"
+      },
+      "sex": "0"
+    }
+  },
+  "102": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "demo_pid_rb_1_5",
+      "document_id": "document_id_demo_pid_rb_1_5_102",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_102"
+    ],
+    "document_data": {
+      "address": {
+        "country": "SE",
+        "formatted": "Tulegatan 11, Stockholm",
+        "house_number": "11",
+        "locality": "Stockholm",
+        "postal_code": "11353",
+        "region": "Stockholm",
+        "street_address": "Tulegatan"
+      },
+      "birth_family_name": "Oldman",
+      "birth_given_name": "Gary",
+      "birthdate": "1988-09-09",
+      "date_of_expiry": "2027-05-19T15:07:11+02:00",
+      "date_of_issuance": "2026-04-19T15:07:11+02:00",
+      "document_number": "doc-demo_pid_rb_1_5-102",
+      "email": "oldman@example.com",
+      "family_name": "Oldman",
+      "given_name": "Gary",
+      "issuing_authority": "SUNET",
+      "issuing_country": "SE",
+      "issuing_jurisdiction": "SUNET",
+      "nationalities": [
+        "SE"
+      ],
+      "personal_administrative_number": "pan-102",
+      "phone_number": "+46700000000",
+      "picture": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
+      "place_of_birth": {
+        "country": "SE",
+        "locality": "Tulegatan 11",
+        "region": "Stockholm"
+      },
+      "sex": "0"
+    }
+  }
+}

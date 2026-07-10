@@ -1,0 +1,12 @@
+---
+operator:
+  telemetry:
+    enabled: false
+  watchNamespace: "*"
+  securityContext:
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop:
+        - ALL

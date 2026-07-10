@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vctms
+  namespace: {{ include "siros-id.namespace" . }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  .empty: "I am here so that the configmap won't ever be empty"
+  {{- range $id, $data := .Values.features.credentialTypes }}
+  {{ $id }}.json: | {{- include "siros-id.dataOrFile" (list $ $data.vctm) | nindent 4 }}
+  {{- end }}

@@ -1,0 +1,67 @@
+---
+name: "Package and publish Helm chart for siros-id-stack"
+
+on:
+  push:
+    # Restrict usage by tag protection rules
+    tags:
+      - "v*.*.**"
+    branches:
+      - "**"
+
+env:
+  REGISTRY: "ghcr.io"
+
+jobs:
+  "package_and_publish":
+    runs-on: "ubuntu-24.04"
+    permissions:
+      contents: "read"
+      packages: "write"
+
+    steps:
+      # GHCR doesn't accept uppercase characters in repository path, below enables easier forking
+      - name: "Extract lowercase version of full registry path"
+        id: "lowercaser"
+        run: >
+          echo "registry_full_path=${REGISTRY}/${{ github.repository }}"
+          | tr '[[:upper:]]' '[[:lower:]]' >> "${GITHUB_OUTPUT}"
+
+      - name: "Extract version value for chart"
+        id: "version_extractor"
+        run: |
+          if [[ "${{ github.ref_type }}" == "branch" ]]; then
+            # Extract "short" version of commit hash
+            VERSION_LABEL="0.0.0-dev-${GITHUB_SHA::7}"
+          else
+            # Remove "v" prefix to match semver specification
+            VERSION_LABEL="${GITHUB_REF_NAME:1}"
+          fi
+          echo "version_label=${VERSION_LABEL}" >> "${GITHUB_OUTPUT}"
+
+      - name: "Checkout repository"
+        # Pinned version: https://github.com/actions/checkout/releases/tag/v6.0.2
+        uses: "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd"
+
+      - name: "Setup Helm"
+        # Pinned version: https://github.com/Azure/setup-helm/releases/tag/v5.0.0
+        uses: "Azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2"
+        with:
+          version: "v4.1.1"
+
+      - name: "Package chart"
+        run: >
+          helm package
+          --version "${{ steps.version_extractor.outputs.version_label }}"
+          .
+
+      - name: "Publish chart"
+        # Helm doesn't support reading credentials directly from environment yet
+        run: >
+          helm push
+          --username "${HELM_REPO_USERNAME}" --password "${HELM_REPO_PASSWORD}"
+          "siros-id-stack-${{ steps.version_extractor.outputs.version_label }}.tgz"
+          "oci://${{ steps.lowercaser.outputs.registry_full_path }}"
+        env:
+          "HELM_REPO_USERNAME": "${{ github.actor }}"
+          "HELM_REPO_PASSWORD": "${{ secrets.GITHUB_TOKEN }}"

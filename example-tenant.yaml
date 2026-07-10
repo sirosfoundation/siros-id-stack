@@ -1,0 +1,40 @@
+tenant:
+  id: "example-tenant"
+  namespace: "siros-id-example-tenant"
+  displayName: "Example Tenant"
+
+domain:
+  root: example.localhost
+
+gateway:
+  name: gateway
+  namespace: shared-gateway
+
+issuer:
+  apiAuth:
+    jwks:
+      enabled: true
+      issuer: "issuer-api_example"
+      jwksData: |
+        {
+          "keys": [
+            {
+              "alg": "ES256"
+              "crv": "P-256",
+              "kid": "issuer-example-sign-1",
+              "kty": "EC",
+              "use": "sig",
+              "x": "0bCSC8Xg6gVP9hmr_ty7HwwTn0AeufeqBhEVl0QeZ8g",
+              "y": "WERfl8bvIEBTqfPv8Cgg78o87qoY1Li8O3XcEKqQjRI",
+            }
+          ]
+        }
+  authProviders:
+    oidc:
+      enabled: true
+      issuerUrl: "https://demo-sso.example.localhost/realms/demo"
+      clientId: "demo-issuer"
+      scopes:
+        - openid
+        - profile
+        - email

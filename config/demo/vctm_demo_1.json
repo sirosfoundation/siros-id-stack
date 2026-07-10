@@ -1,0 +1,63 @@
+{
+  "vct": "urn:demo:1",
+  "name": "Simple demo credential",
+  "description": "A demonstration verifiable credential for identity verification.",
+  "display": [
+    {
+      "locale": "en-US",
+      "name": "Simple demo credential",
+      "rendering": {
+        "simple": {
+          "background_color": "#1a365d",
+          "text_color": "#ffffff"
+        },
+        "svg_templates": [
+          {
+            "uri": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iODI5IiBoZWlnaHQ9IjUwNCIgdmVyc2lvbj0iMS4xIj4KCTx0ZXh0IHg9IjQ1IiB5PSIxNzAiIGZvbnQtZmFtaWx5PSJtYXRoIiBmb250LXNpemU9IjI1IiBmaWxsPSIjNzAwMDAwIiBmb250LXdlaWdodD0iYm9sZCI+RW1haWw8L3RleHQ+Cgk8dGV4dCB4PSI0NSIgeT0iMjAwIiBmb250LWZhbWlseT0ibWF0aCIgZm9udC1zaXplPSIzMCIgZmlsbD0iIzYyNWY2MCIgZm9udC13ZWlnaHQ9Im5vcm1hbCI+e3tlbWFpbH19PC90ZXh0PgoJPHRleHQgeD0iNDUiIHk9IjI1MCIgZm9udC1mYW1pbHk9Im1hdGgiIGZvbnQtc2l6ZT0iMjUiIGZpbGw9IiM3MDAwMDAiIGZvbnQtd2VpZ2h0PSJib2xkIj5OYW1lPC90ZXh0PgoJPHRleHQgeD0iNDUiIHk9IjI4MCIgZm9udC1mYW1pbHk9Im1hdGgiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiM2MjVmNjAiIGZvbnQtd2VpZ2h0PSJub3JtYWwiPnt7Z2l2ZW5fbmFtZX19IHt7ZmFtaWx5X25hbWV9fTwvdGV4dD4KPC9zdmc+Cg=="
+          }
+        ]
+      }
+    }
+  ],
+  "claims": [
+    {
+      "description": "Email address of the holder",
+      "display": [
+        {
+          "label": "Email",
+          "locale": "en-US"
+        }
+      ],
+      "path": [
+        "email"
+      ],
+      "svg_id": "email"
+    },
+    {
+      "description": "The given name of the credential holder",
+      "display": [
+        {
+          "label": "Given Name",
+          "locale": "en-US"
+        }
+      ],
+      "path": [
+        "given_name"
+      ],
+      "svg_id": "given_name"
+    },
+    {
+      "description": "The family name of the credential holder",
+      "display": [
+        {
+          "label": "Family Name",
+          "locale": "en-US"
+        }
+      ],
+      "path": [
+        "family_name"
+      ],
+      "svg_id": "family_name"
+    }
+  ]
+}
