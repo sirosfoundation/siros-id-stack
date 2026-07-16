@@ -10,7 +10,7 @@ features:
       format: dc+sd-jwt
       issuance:
         authProvider: oidc
-        source: "datastore"
+        source: "assertion"
         authOptions:
           claims:
             - given_name
@@ -20,19 +20,6 @@ features:
       vct: https://registry.siros.org/sirosfoundation/demo_pid_rb_1_5.vctm.json
       vctm:
         file: "config/demo/vctm_demo_pid_rb_1_5.json"
-      format: dc+sd-jwt
-      issuance:
-        authProvider: oidc
-        source: "datastore"
-        authOptions:
-          claims:
-            - given_name
-            - family_name
-            - birthdate
-    "pid_1_5":
-      vct: urn:eudi:pid:arf-1.5:1
-      vctm:
-        file: "config/demo/vctm_pid_arf_1_5.json"
       format: dc+sd-jwt
       issuance:
         authProvider: oidc
@@ -129,28 +116,6 @@ verifier:
           - path: ["personal_administrative_number"]
           - path: ["document_number"]
   presentationRequestTemplates: 
-    "pid_1_5_basic":
-      name: "PID ARF 1.5 - Basic Profile"
-      description: "Request basic personal identification data (PID ARF 1.5)"
-      version: "1.0"
-      oidc_scopes:
-        - "pid_1_5_basic"
-      dcql:
-        credentials:
-          - id: "pid_1_5"
-            format: "dc+sd-jwt"
-            meta:
-              vct_values:
-                - "urn:eudi:pid:arf-1.5:1"
-            claims:
-              - path: ["given_name"]
-              - path: ["family_name"]
-              - path: ["birthdate"]
-              - path: ["age_over_18"]
-              - path: ["nationality"]
-      claim_mappings:
-        "*": "*"
-      enabled: true
     "demo_pid_rb_1_5_basic":
       name: "Demo PID RB 1.5 - Basic Profile"
       description: "Request basic personal identification data (Demo PID RB 1.5)"
