@@ -31,163 +31,163 @@
     {
       "path": ["eu.europa.ec.eudi.pid.1", "family_name"],
       "mandatory": true,
-      "display": [{ "name": "Family Name(s)", "label": "Family Name(s)", "locale": "en" }],
+      "display": [{ "name": "Family Name(s)", "label": "Family Name(s)", "locale": "en-US" }],
       "svg_id": "family_name"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "given_name"],
       "mandatory": true,
-      "display": [{ "name": "Given Name(s)", "label": "Given Name(s)", "locale": "en" }],
+      "display": [{ "name": "Given Name(s)", "label": "Given Name(s)", "locale": "en-US" }],
       "svg_id": "given_name"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "birth_date"],
       "mandatory": true,
-      "display": [{ "name": "Birth Date", "label": "Birth Date", "locale": "en" }],
+      "display": [{ "name": "Birth Date", "label": "Birth Date", "locale": "en-US" }],
       "svg_id": "birth_date"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "place_of_birth"],
       "mandatory": true,
-      "display": [{ "name": "Place of Birth", "label": "Place of Birth", "locale": "en" }],
+      "display": [{ "name": "Place of Birth", "label": "Place of Birth", "locale": "en-US" }],
       "svg_id": "place_of_birth"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "nationality"],
       "mandatory": true,
-      "display": [{ "name": "Nationality", "label": "Nationality", "locale": "en" }],
+      "display": [{ "name": "Nationality", "label": "Nationality", "locale": "en-US" }],
       "svg_id": "nationality"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_address"],
       "mandatory": false,
-      "display": [{ "name": "Resident Address", "label": "Resident Address", "locale": "en" }],
+      "display": [{ "name": "Resident Address", "label": "Resident Address", "locale": "en-US" }],
       "svg_id": "resident_address"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_country"],
       "mandatory": false,
-      "display": [{ "name": "Resident Country", "label": "Resident Country", "locale": "en" }],
+      "display": [{ "name": "Resident Country", "label": "Resident Country", "locale": "en-US" }],
       "svg_id": "resident_country"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_state"],
       "mandatory": false,
-      "display": [{ "name": "Resident State", "label": "Resident State", "locale": "en" }],
+      "display": [{ "name": "Resident State", "label": "Resident State", "locale": "en-US" }],
       "svg_id": "resident_state"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_city"],
       "mandatory": false,
-      "display": [{ "name": "Resident City", "label": "Resident City", "locale": "en" }],
+      "display": [{ "name": "Resident City", "label": "Resident City", "locale": "en-US" }],
       "svg_id": "resident_city"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_postal_code"],
       "mandatory": false,
-      "display": [{ "name": "Resident Postal Code", "label": "Resident Postal Code", "locale": "en" }],
+      "display": [{ "name": "Resident Postal Code", "label": "Resident Postal Code", "locale": "en-US" }],
       "svg_id": "resident_postal_code"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_street"],
       "mandatory": false,
-      "display": [{ "name": "Resident Street", "label": "Resident Street", "locale": "en" }],
+      "display": [{ "name": "Resident Street", "label": "Resident Street", "locale": "en-US" }],
       "svg_id": "resident_street"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "resident_house_number"],
       "mandatory": false,
-      "display": [{ "name": "Resident House Number", "label": "Resident House Number", "locale": "en" }],
+      "display": [{ "name": "Resident House Number", "label": "Resident House Number", "locale": "en-US" }],
       "svg_id": "resident_house_number"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "personal_administrative_number"],
       "mandatory": false,
-      "display": [{ "name": "Personal Administrative Number", "label": "Personal Administrative Number", "locale": "en" }],
+      "display": [{ "name": "Personal Administrative Number", "label": "Personal Administrative Number", "locale": "en-US" }],
       "svg_id": "personal_administrative_number"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "portrait"],
       "mandatory": false,
-      "display": [{ "name": "Portrait Image", "label": "Portrait Image", "locale": "en" }],
+      "display": [{ "name": "Portrait Image", "label": "Portrait Image", "locale": "en-US" }],
       "svg_id": "portrait"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "family_name_birth"],
       "mandatory": false,
-      "display": [{ "name": "Birth Family Name(s)", "label": "Birth Family Name(s)", "locale": "en" }],
+      "display": [{ "name": "Birth Family Name(s)", "label": "Birth Family Name(s)", "locale": "en-US" }],
       "svg_id": "family_name_birth"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "given_name_birth"],
       "mandatory": false,
-      "display": [{ "name": "Birth Given Name(s)", "label": "Birth Given Name(s)", "locale": "en" }],
+      "display": [{ "name": "Birth Given Name(s)", "label": "Birth Given Name(s)", "locale": "en-US" }],
       "svg_id": "given_name_birth"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "sex"],
       "mandatory": false,
-      "display": [{ "name": "Sex", "label": "Sex", "locale": "en" }],
+      "display": [{ "name": "Sex", "label": "Sex", "locale": "en-US" }],
       "svg_id": "sex"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "email_address"],
       "mandatory": false,
-      "display": [{ "name": "Email Address", "label": "Email Address", "locale": "en" }],
+      "display": [{ "name": "Email Address", "label": "Email Address", "locale": "en-US" }],
       "svg_id": "email_address"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "mobile_phone_number"],
       "mandatory": false,
-      "display": [{ "name": "Mobile Phone Number", "label": "Mobile Phone Number", "locale": "en" }],
+      "display": [{ "name": "Mobile Phone Number", "label": "Mobile Phone Number", "locale": "en-US" }],
       "svg_id": "mobile_phone_number"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "expiry_date"],
       "mandatory": true,
-      "display": [{ "name": "Expiry Date", "label": "Expiry Date", "locale": "en" }],
+      "display": [{ "name": "Expiry Date", "label": "Expiry Date", "locale": "en-US" }],
       "svg_id": "expiry_date"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "issuing_authority"],
       "mandatory": true,
-      "display": [{ "name": "Issuance Authority", "label": "Issuance Authority", "locale": "en" }],
+      "display": [{ "name": "Issuance Authority", "label": "Issuance Authority", "locale": "en-US" }],
       "svg_id": "issuing_authority"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "issuing_country"],
       "mandatory": true,
-      "display": [{ "name": "Issuing Country", "label": "Issuing Country", "locale": "en" }],
+      "display": [{ "name": "Issuing Country", "label": "Issuing Country", "locale": "en-US" }],
       "svg_id": "issuing_country"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "document_number"],
       "mandatory": false,
-      "display": [{ "name": "Document Number", "label": "Document Number", "locale": "en" }],
+      "display": [{ "name": "Document Number", "label": "Document Number", "locale": "en-US" }],
       "svg_id": "document_number"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "issuing_jurisdiction"],
       "mandatory": false,
-      "display": [{ "name": "Issuing Jurisdiction", "label": "Issuing Jurisdiction", "locale": "en" }],
+      "display": [{ "name": "Issuing Jurisdiction", "label": "Issuing Jurisdiction", "locale": "en-US" }],
       "svg_id": "issuing_jurisdiction"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "issuance_date"],
       "mandatory": false,
-      "display": [{ "name": "Issuance Date", "label": "Issuance Date", "locale": "en" }],
+      "display": [{ "name": "Issuance Date", "label": "Issuance Date", "locale": "en-US" }],
       "svg_id": "issuance_date"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "trust_anchor"],
       "mandatory": false,
-      "display": [{ "name": "Trust Anchor", "label": "Trust Anchor", "locale": "en" }],
+      "display": [{ "name": "Trust Anchor", "label": "Trust Anchor", "locale": "en-US" }],
       "svg_id": "trust_anchor"
     },
     {
       "path": ["eu.europa.ec.eudi.pid.1", "attestation_legal_category"],
       "mandatory": false,
-      "display": [{ "name": "Attestation Legal Category", "label": "Attestation Legal Category", "locale": "en" }],
+      "display": [{ "name": "Attestation Legal Category", "label": "Attestation Legal Category", "locale": "en-US" }],
       "svg_id": "attestation_legal_category"
     }
   ]
