@@ -1,5 +1,11 @@
 # siros-id-stack
 
+## Introduction
+This Helm Chart aims to help users configure and deploy components in the "SIROS ID stack".
+In addition, it may also serve as practical reference for working component configuration.
+
+**Warning:** This chart is under heavy development and has some rough edges. Review open issues before usage.
+
 ## Features
 Sets up the SIROS ID Stack:
 - [go-wallet-backend](https://github.com/sirosfoundation/go-wallet-backend)
