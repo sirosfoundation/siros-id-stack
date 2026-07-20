@@ -418,6 +418,16 @@ spec:
           port: {{ $params.port | default 80 }}
 {{- end -}}
 
+{{/* Get Mongo connection URI.
+Call with (list . "database_name").
+Expects the client certificate to be mounted at /client-cert.
+*/}}
+{{- define "siros-id.mongoUri" -}}
+{{- $root := index . 0 -}}
+{{- $database := index . 1 -}}
+mongodb+srv://mongodb-svc.{{ include "siros-id.namespace" $root }}.svc.{{ $root.Values.global.clusterDomain }}/{{ $database }}?replicaSet=mongodb&ssl=true&authMechanism=MONGODB-X509
+{{- end -}}
+
 {{/* Mongo client config fragment for the service config files.
 Call with (list . "database_name").
 Expects the client certificate to be mounted at /client-cert.
@@ -426,7 +436,7 @@ Expects the client certificate to be mounted at /client-cert.
 {{- $root := index . 0 -}}
 {{- $database := index . 1 -}}
 mongo:
-  uri: mongodb+srv://mongodb-svc.{{ include "siros-id.namespace" $root }}.svc.{{ $root.Values.global.clusterDomain }}/{{ $database }}?replicaSet=mongodb&ssl=true&authMechanism=MONGODB-X509
+  uri: {{ include "siros-id.mongoUri" (list $root $database) }}
   tls: true
   ca_file_path: /client-cert/ca.crt
   cert_file_path: /client-cert/tls.crt

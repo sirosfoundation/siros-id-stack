@@ -431,6 +431,13 @@ resources:
     limits:
       cpu: 250m
       memory: 500M
+  mongoBackup:
+    requests:
+      cpu: 250m
+      memory: 500M
+    limits:
+      cpu: 250m
+      memory: 500M
 
 storage:
   mongo:
@@ -461,6 +468,10 @@ secrets:
     name: verifier-main
     properties:
       - oidcProviderSubjectSalt
+  mongoBackupMain:
+    name: mongo-backup-main
+    properties:
+      - s3SecretKey
 
 networkPolicies:
   kubeApiserverPort: 6443
