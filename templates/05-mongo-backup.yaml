@@ -1,0 +1,118 @@
+{{- $ns := include "siros-id.namespace" . -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-backup-main
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  secretsNamespace: {{ $ns }}
+  values.yaml: | {{- .Values.secrets | toYamlPretty | nindent 4 }}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongo-backup
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict "reloader.stakater.com/auto" "true")) | nindent 2 }}
+spec:
+  schedule: "*/15 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          {{- include "siros-id.labels" (list . (dict "app.kubernetes.io/name" "mongo-backup")) | nindent 10 }}
+        spec:
+          {{- include "siros-id.imagePullSecrets" . | nindent 10 }}
+          serviceAccountName: mongo-backup-1
+          {{- include "siros-id.podSecurityContext" (dict "runAsUser" 65532) | nindent 10 }}
+          resources:
+            {{- toYamlPretty .Values.resources.secretGenerator | nindent 12 }}
+          volumes:
+            - name: main-config
+              configMap:
+                name: mongo-backup-main
+            - name: backups
+              emptyDir: {}
+          restartPolicy: OnFailure
+          containers:
+            - name: main
+              image: {{ .Values.images.opsStackUtilities | quote }}
+              {{- include "siros-id.imagePullPolicy" . | nindent 14 }}
+              {{- include "siros-id.containerSecurityContext" (dict) | nindent 14 }}
+              volumeMounts:
+                - name: main-config
+                  mountPath: /main-config
+                  readOnly: true
+                - name: backups
+                  mountPath: /backups
+              env:
+                - name: SECRETS_NAMESPACE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: mongo-backup-main
+                      key: secretsNamespace
+              args:
+                - /bin/bash
+                - -c
+                - |
+                  set -euo pipefail
+                  mkdir -p /tmp/chart/templates
+                  cp /main-config/values.yaml /data/Chart.yaml /tmp/chart/
+                  cp /data/template.yaml /tmp/chart/templates/
+                  echo "Starting secret generation with Helm"
+                  helm \
+                    template /tmp/chart --namespace "${SECRETS_NAMESPACE}" \
+                    --dry-run=server --take-ownership \
+                  | kubectl apply -f -
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mongo-backup
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mongo-backup
+  egress:
+    # FIXME: How to do we make sure we are using the correct kube-apiserver IP+port?
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: kube-apiserver
+      ports:
+        - port: {{ .Values.networkPolicies.kubeApiserverPort }}
+
+{{- if .Values.networkPolicies.ciliumNetworkPolicies }}
+# NOTE: Cilium does not support NetworkPolicy podSelector for host-networked pods
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mongo-backup
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: mongo-backup
+  egress:
+    - toEntities:
+        - kube-apiserver
+{{- end }}
+{{- end -}}
