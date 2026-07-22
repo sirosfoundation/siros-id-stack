@@ -17,13 +17,13 @@ data:
       level: debug
       format: json
     registries:
-    {{- if .Values.pdp.extraRegistries }}
+      {{- if .Values.pdp.extraRegistries }}
       {{- toYamlPretty .Values.pdp.extraRegistries | nindent 6 }}
-    {{- end }}
-    {{- if .Values.pdp.default_whitelist }}
+      {{- end }}
+      {{- if .Values.pdp.default_whitelist }}
       whitelist:
         enabled: true
-        name: Static allowlist
+        name: Static-Allowlist
         description: Pre-configured URLs for trusted parties
         lists:
           # TODO: All issuers should not be PID provider, add another toggle for this.
@@ -47,7 +47,18 @@ data:
           credential-issuer: pid-issuers
           verifier: verifiers
           credential-verifier: verifiers
-    {{- end }}
+      mdociaca:
+        enabled: true
+        name: mDOC-IACA
+        description: mDOC IACA certificate validation
+        cache_ttl: "5m"
+        http_timeout: "30s"
+        issuer_allowlist:
+          - https://{{ include "siros-id.hostname.issuer" . }}
+          {{- range .Values.features.extraIssuers }}
+          - {{ .url }}
+          {{- end }}
+      {{- end }}
 
 ---
 apiVersion: apps/v1

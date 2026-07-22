@@ -231,7 +231,7 @@ spec:
               /docker-entrypoint.d/nginx-security-headers-config.sh
       containers:
         - name: main
-          image: {{ .Values.images.walletFrontendNginx | quote }}
+          image: {{ .Values.images.nginx | quote }}
           {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
           {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
           resources:

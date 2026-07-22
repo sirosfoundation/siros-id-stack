@@ -201,8 +201,104 @@ spec:
 
 ---
 {{ include "siros-id.certificate" (list . (dict 
-  "name" "issuer-core-sign" "ou" "signers" "usages" (list "digital signature" "content commitment")
+  "name" "issuer-core-sign" "literalSubject" (printf "C=%s,OU=signers,O=siros-id" $hostnameIssuer) "dnsNames" (list $hostnameIssuer) "usages" (list "digital signature" "content commitment")
   "rotationPolicy" "Never" "issuerRef" .Values.global.certManager.credentialSigning.issuerRef "duration" "8760h")) }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: issuer-meta-main
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  default.conf: |-
+    server {
+      listen 8080;
+      root /web-root;
+      location /_meta/ {
+        alias /web-root/;
+      }
+      location /readyz {
+        access_log off;
+        default_type text/plain;
+        return 200 'issuer-meta';
+      }
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: issuer-meta
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict "reloader.stakater.com/auto" "true")) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicas.issuerMeta }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: issuer-meta
+  template:
+    metadata:
+      {{- include "siros-id.labels" (list . (dict "app.kubernetes.io/name" "issuer-meta")) | nindent 6 }}
+    spec:
+      {{- include "siros-id.topologySpreadConstraints" (list . "issuer-meta") | nindent 6 }}
+      {{- include "siros-id.imagePullSecrets" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- include "siros-id.podSecurityContext" (dict "runAsUser" 101) | nindent 6 }}
+      resources:
+        {{- toYamlPretty .Values.resources.issuerMeta | nindent 8 }}
+      volumes:
+        - name: config-main
+          configMap:
+            name: issuer-meta-main
+        - name: web-root
+          secret:
+            secretName: issuer-core-sign-cert
+            items:
+              - key: ca.crt
+                path: iaca.crt
+      containers:
+        - name: main
+          image: {{ .Values.images.nginx | quote }}
+          {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
+          {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
+          ports:
+            - name: http-main
+              containerPort: 8080
+          {{- include "siros-id.httpProbes" (dict "path" "/readyz" "port" "http-main") | nindent 10 }}
+          volumeMounts:
+            - name: config-main
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+            - name: web-root
+              mountPath: /web-root
+              readOnly: true
+
+---
+{{ include "siros-id.podDisruptionBudget" (list . (dict "name" "issuer-meta" "minAvailable" .Values.podDisruptionBudget.issuerMeta.minAvailable)) }}
+
+---
+{{ include "siros-id.service" (list . (dict "name" "issuer-meta" "ports" (list
+  (dict "name" "http-main" "port" 80 "targetPort" 8080)))) }}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: issuer-meta
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: issuer-meta
+  ingress:
+    - ports:
+        - port: http-main
 
 ---
 apiVersion: v1
@@ -263,6 +359,8 @@ data:
       registry_public_url: https://{{ $hostnameIssuerRegistry }}
       issuer_client: {{- include "siros-id.vc.config.grpcClient" "issuer-core" | nindent 8 }}
       registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 8 }}
+      issuer_metadata:
+        mdoc_iacas_uri: https://{{ $hostnameIssuer }}/iacas
       {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
       identity_mapping_import:
         file_paths:
@@ -539,7 +637,30 @@ spec:
             except: {{- include "siros-id.reservedNetworks.v6" . | nindent 14 }}
 
 ---
-{{ include "siros-id.hostnameHttpRoute" (list . (dict "name" "issuer-apigw" "hostname" $hostnameIssuer)) }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: issuer-apigw
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+  hostnames:
+    - {{ $hostnameIssuer | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /_meta/
+      backendRefs:
+        - name: issuer-meta
+          port: 80
+    - backendRefs:
+        - name: issuer-apigw
+          port: 80
 
 ---
 {{ include "siros-id.certificate" (list . (dict 

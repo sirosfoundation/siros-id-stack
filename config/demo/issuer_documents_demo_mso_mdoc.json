@@ -2,8 +2,8 @@
   "100": {
     "meta": {
       "authentic_source": "MockTaxAuthority",
-      "scope": "mso_mdoc",
-      "document_id": "document_id_mso_mdoc_100",
+      "scope": "pid_mdoc",
+      "document_id": "document_id_pid_mdoc_100",
       "created_at": "0001-01-01T00:00:00Z"
     },
     "identity_mapping_ids": [
@@ -24,7 +24,7 @@
       "birthdate": "1996-01-30",
       "date_of_expiry": "2027-05-19T15:07:11+02:00",
       "date_of_issuance": "2026-04-19T15:07:11+02:00",
-      "document_number": "doc-mso_mdoc-100",
+      "document_number": "doc-pid_mdoc-100",
       "email": "mirren@example.com",
       "family_name": "Mirren",
       "given_name": "Helen",
@@ -48,8 +48,8 @@
   "102": {
     "meta": {
       "authentic_source": "MockTaxAuthority",
-      "scope": "mso_mdoc",
-      "document_id": "document_id_mso_mdoc_102",
+      "scope": "pid_mdoc",
+      "document_id": "document_id_pid_mdoc_102",
       "created_at": "0001-01-01T00:00:00Z"
     },
     "identity_mapping_ids": [
@@ -70,7 +70,7 @@
       "birthdate": "1988-09-09",
       "date_of_expiry": "2027-05-19T15:07:11+02:00",
       "date_of_issuance": "2026-04-19T15:07:11+02:00",
-      "document_number": "doc-mso_mdoc-102",
+      "document_number": "doc-pid_mdoc-102",
       "email": "oldman@example.com",
       "family_name": "Oldman",
       "given_name": "Gary",

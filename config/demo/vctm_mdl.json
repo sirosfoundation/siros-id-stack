@@ -1,0 +1,529 @@
+{
+  "scope": "mdl",
+  "vct": "org.iso.18013.5.1.mDL",
+  "doctype": "org.iso.18013.5.1.mDL",
+  "name": "Mobile Driving Licence",
+  "description": "An ISO/IEC 18013-5 compliant mobile driving licence credential, issued in mdoc (CBOR/COSE) format.",
+  "display": [
+    {
+      "locale": "en-US",
+      "name": "Mobile Driving Licence",
+      "description": "",
+      "rendering": {
+        "simple": {
+          "logo": {
+            "uri": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MDAgNjAwIiB3aWR0aD0iOTAwIiBoZWlnaHQ9IjYwMCI+CiAgPCEtLSBCbHVlIGJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9IiMwMDMzOTkiLz4KICA8IS0tIDEyIGdvbGQgc3RhcnMgaW4gYSBjaXJjbGUsIGVhY2ggc3RhciBjZW50ZXJlZCBvbiBhIGNsb2NrIHBvc2l0aW9uIC0tPgogIDwhLS0gU3RhciByYWRpdXM6IDMwLCBjaXJjbGUgcmFkaXVzOiAxNTAsIGNlbnRlcjogNDUwLDMwMCAtLT4KICA8IS0tIFN0YXJzIGF0IDDCsCwgMzDCsCwgNjDCsCwgLi4uLCAzMzDCsCAtLT4KICA8ZyBmaWxsPSIjRkZDQzAwIj4KICAgIDwhLS0gMTIgbydjbG9jayAtLT4KICAgIDxwb2x5Z29uIHBvaW50cz0iNDUwLDEyMCA0NTYuMTgsMTM4LjA5IDQ3NS41MywxMzguMDkgNDYwLjY3LDE0OS4wMiA0NjYuODUsMTY3LjExIDQ1MCwxNTYuMTggNDMzLjE1LDE2Ny4xMSA0MzkuMzMsMTQ5LjAyIDQyNC40NywxMzguMDkgNDQzLjgyLDEzOC4wOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSIvPgogICAgPCEtLSAxIG8nY2xvY2sgKDMwwrApIC0tPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NTAsMTIwIDQ1Ni4xOCwxMzguMDkgNDc1LjUzLDEzOC4wOSA0NjAuNjcsMTQ5LjAyIDQ2Ni44NSwxNjcuMTEgNDUwLDE1Ni4xOCA0MzMuMTUsMTY3LjExIDQzOS4zMywxNDkuMDIgNDI0LjQ3LDEzOC4wOSA0NDMuODIsMTM4LjA5IiB0cmFuc2Zvcm09InJvdGF0ZSgzMCw0NTAsMzAwKSIvPgogICAgPCEtLSAyIG8nY2xvY2sgKDYwwrApIC0tPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NTAsMTIwIDQ1Ni4xOCwxMzguMDkgNDc1LjUzLDEzOC4wOSA0NjAuNjcsMTQ5LjAyIDQ2Ni44NSwxNjcuMTEgNDUwLDE1Ni4xOCA0MzMuMTUsMTY3LjExIDQzOS4zMywxNDkuMDIgNDI0LjQ3LDEzOC4wOSA0NDMuODIsMTM4LjA5IiB0cmFuc2Zvcm09InJvdGF0ZSg2MCw0NTAsMzAwKSIvPgogICAgPCEtLSAzIG8nY2xvY2sgKDkwwrApIC0tPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NTAsMTIwIDQ1Ni4xOCwxMzguMDkgNDc1LjUzLDEzOC4wOSA0NjAuNjcsMTQ5LjAyIDQ2Ni44NSwxNjcuMTEgNDUwLDE1Ni4xOCA0MzMuMTUsMTY3LjExIDQzOS4zMywxNDkuMDIgNDI0LjQ3LDEzOC4wOSA0NDMuODIsMTM4LjA5IiB0cmFuc2Zvcm09InJvdGF0ZSg5MCw0NTAsMzAwKSIvPgogICAgPCEtLSA0IG8nY2xvY2sgKDEyMMKwKSAtLT4KICAgIDxwb2x5Z29uIHBvaW50cz0iNDUwLDEyMCA0NTYuMTgsMTM4LjA5IDQ3NS41MywxMzguMDkgNDYwLjY3LDE0OS4wMiA0NjYuODUsMTY3LjExIDQ1MCwxNTYuMTggNDMzLjE1LDE2Ny4xMSA0MzkuMzMsMTQ5LjAyIDQyNC40NywxMzguMDkgNDQzLjgyLDEzOC4wOSIgdHJhbnNmb3JtPSJyb3RhdGUoMTIwLDQ1MCwzMDApIi8+CiAgICA8IS0tIDUgbydjbG9jayAoMTUwwrApIC0tPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NTAsMTIwIDQ1Ni4xOCwxMzguMDkgNDc1LjUzLDEzOC4wOSA0NjAuNjcsMTQ5LjAyIDQ2Ni44NSwxNjcuMTEgNDUwLDE1Ni4xOCA0MzMuMTUsMTY3LjExIDQzOS4zMywxNDkuMDIgNDI0LjQ3LDEzOC4wOSA0NDMuODIsMTM4LjA5IiB0cmFuc2Zvcm09InJvdGF0ZSgxNTAsNDUwLDMwMCkiLz4KICAgIDwhLS0gNiBvJ2Nsb2NrICgxODDCsCkgLS0+CiAgICA8cG9seWdvbiBwb2ludHM9IjQ1MCwxMjAgNDU2LjE4LDEzOC4wOSA0NzUuNTMsMTM4LjA5IDQ2MC42NywxNDkuMDIgNDY2Ljg1LDE2Ny4xMSA0NTAsMTU2LjE4IDQzMy4xNSwxNjcuMTEgNDM5LjMzLDE0OS4wMiA0MjQuNDcsMTM4LjA5IDQ0My44MiwxMzguMDkiIHRyYW5zZm9ybT0icm90YXRlKDE4MCw0NTAsMzAwKSIvPgogICAgPCEtLSA3IG8nY2xvY2sgKDIxMMKwKSAtLT4KICAgIDxwb2x5Z29uIHBvaW50cz0iNDUwLDEyMCA0NTYuMTgsMTM4LjA5IDQ3NS41MywxMzguMDkgNDYwLjY3LDE0OS4wMiA0NjYuODUsMTY3LjExIDQ1MCwxNTYuMTggNDMzLjE1LDE2Ny4xMSA0MzkuMzMsMTQ5LjAyIDQyNC40NywxMzguMDkgNDQzLjgyLDEzOC4wOSIgdHJhbnNmb3JtPSJyb3RhdGUoMjEwLDQ1MCwzMDApIi8+CiAgICA8IS0tIDggbydjbG9jayAoMjQwwrApIC0tPgogICAgPHBvbHlnb24gcG9pbnRzPSI0NTAsMTIwIDQ1Ni4xOCwxMzguMDkgNDc1LjUzLDEzOC4wOSA0NjAuNjcsMTQ5LjAyIDQ2Ni44NSwxNjcuMTEgNDUwLDE1Ni4xOCA0MzMuMTUsMTY3LjExIDQzOS4zMywxNDkuMDIgNDI0LjQ3LDEzOC4wOSA0NDMuODIsMTM4LjA5IiB0cmFuc2Zvcm09InJvdGF0ZSgyNDAsNDUwLDMwMCkiLz4KICAgIDwhLS0gOSBvJ2Nsb2NrICgyNzDCsCkgLS0+CiAgICA8cG9seWdvbiBwb2ludHM9IjQ1MCwxMjAgNDU2LjE4LDEzOC4wOSA0NzUuNTMsMTM4LjA5IDQ2MC42NywxNDkuMDIgNDY2Ljg1LDE2Ny4xMSA0NTAsMTU2LjE4IDQzMy4xNSwxNjcuMTEgNDM5LjMzLDE0OS4wMiA0MjQuNDcsMTM4LjA5IDQ0My44MiwxMzguMDkiIHRyYW5zZm9ybT0icm90YXRlKDI3MCw0NTAsMzAwKSIvPgogICAgPCEtLSAxMCBvJ2Nsb2NrICgzMDDCsCkgLS0+CiAgICA8cG9seWdvbiBwb2ludHM9IjQ1MCwxMjAgNDU2LjE4LDEzOC4wOSA0NzUuNTMsMTM4LjA5IDQ2MC42NywxNDkuMDIgNDY2Ljg1LDE2Ny4xMSA0NTAsMTU2LjE4IDQzMy4xNSwxNjcuMTEgNDM5LjMzLDE0OS4wMiA0MjQuNDcsMTM4LjA5IDQ0My44MiwxMzguMDkiIHRyYW5zZm9ybT0icm90YXRlKDMwMCw0NTAsMzAwKSIvPgogICAgPCEtLSAxMSBvJ2Nsb2NrICgzMzDCsCkgLS0+CiAgICA8cG9seWdvbiBwb2ludHM9IjQ1MCwxMjAgNDU2LjE4LDEzOC4wOSA0NzUuNTMsMTM4LjA5IDQ2MC42NywxNDkuMDIgNDY2Ljg1LDE2Ny4xMSA0NTAsMTU2LjE4IDQzMy4xNSwxNjcuMTEgNDM5LjMzLDE0OS4wMiA0MjQuNDcsMTM4LjA5IDQ0My44MiwxMzguMDkiIHRyYW5zZm9ybT0icm90YXRlKDMzMCw0NTAsMzAwKSIvPgogIDwvZz4KPC9zdmc+Cg==",
+            "uri#integrity": "sha256-coY+9dkr9M27l4ATJU+bTIt3hCMuZ9owr7MtX35WzYw="
+          }
+        },
+        "svg_templates": [
+          {
+            "uri": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzY1IiBoZWlnaHQ9IjI0MyIgdmlld0JveD0iMCAwIDM2NSAyNDMiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHg9IjAuNzUiIHk9IjAuNzUiIHdpZHRoPSIzNjMuNSIgaGVpZ2h0PSIyNDEuNSIgcng9IjE0LjI1IiBmaWxsPSJ1cmwoI3BhaW50MF9saW5lYXJfNTcwXzk2NykiIHN0cm9rZT0iI0JEQkRCRCIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPHJlY3QgeD0iMTIiIHk9IjExIiB3aWR0aD0iMzQyIiBoZWlnaHQ9IjM4IiByeD0iOCIgZmlsbD0iIzhFNEE2RCIvPgo8dGV4dCBmaWxsPSIjRkNGQkZGIiBzdHlsZT0id2hpdGUtc3BhY2U6IHByZSIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iYm9sZCIgbGV0dGVyLXNwYWNpbmc9IjAuMTRlbSI+PHRzcGFuIHg9IjI0IiB5PSIzNC44NTM1Ij5EUklWSU5HIExJQ0VOU0U8L3RzcGFuPjwvdGV4dD4KPHRleHQgZmlsbD0iIzBDMEUxMSIgc3R5bGU9IndoaXRlLXNwYWNlOiBwcmUiIHhtbDpzcGFjZT0icHJlc2VydmUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI5IiBsZXR0ZXItc3BhY2luZz0iMGVtIj48dHNwYW4geD0iMjQuMzk2OSIgeT0iODcuMTIwMSI+RnVsbCBuYW1lPC90c3Bhbj48L3RleHQ+Cjx0ZXh0IGZpbGw9ImJsYWNrIiBzdHlsZT0id2hpdGUtc3BhY2U6IHByZSIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmb250LXdlaWdodD0iYm9sZCIgbGV0dGVyLXNwYWNpbmc9IjBlbSI+PHRzcGFuIHg9IjI0IiB5PSIxMDEuMzEzIj57e2dpdmVuX25hbWV9fSAmIzEwOzwvdHNwYW4+PHRzcGFuIHg9IjI0IiB5PSIxMTQuMzEzIj57e2ZhbWlseV9uYW1lfX08L3RzcGFuPjwvdGV4dD4KPHJlY3QgeD0iMTIiIHk9IjE5NCIgd2lkdGg9IjM0MiIgaGVpZ2h0PSIzOCIgcng9IjgiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IGZpbGw9IiMwQzBFMTEiIHN0eWxlPSJ3aGl0ZS1zcGFjZTogcHJlIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZvbnQtd2VpZ2h0PSJib2xkIiBsZXR0ZXItc3BhY2luZz0iMGVtIj48dHNwYW4geD0iMjU1IiB5PSIyMjEuMzEzIj57e2V4cGlyeV9kYXRlfX08L3RzcGFuPjwvdGV4dD4KPHRleHQgZmlsbD0iIzBDMEUxMSIgc3R5bGU9IndoaXRlLXNwYWNlOiBwcmUiIHhtbDpzcGFjZT0icHJlc2VydmUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI5IiBsZXR0ZXItc3BhY2luZz0iMGVtIj48dHNwYW4geD0iMjU1IiB5PSIyMDguMTIiPlZhbGlkIHVudGlsPC90c3Bhbj48L3RleHQ+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfNTcwXzk2NyIgeDE9IjE4Mi41IiB5MT0iMCIgeDI9IjE4Mi41IiB5Mj0iMjQzIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiNGQkZCRkIiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRkZEQ0VFIi8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cg==",
+            "properties": {
+              "orientation": "landscape",
+              "color_scheme": "light",
+              "contrast": "normal"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "claims": [
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "family_name"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Family Name",
+          "label": "Last Name",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "family_name"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "given_name"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Given Name",
+          "label": "First Name",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "given_name"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "birth_date"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Date of Birth",
+          "label": "Date of Birth",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "birth_date"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "issue_date"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Issue Date",
+          "label": "Issue Date",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "issue_date"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "expiry_date"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Expiry Date",
+          "label": "Expiry Date",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "expiry_date"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "issuing_country"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Issuing Country",
+          "label": "Issuing Country",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "issuing_country"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "issuing_authority"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Issuing Authority",
+          "label": "Issuing Authority",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "issuing_authority"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "document_number"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Document Number",
+          "label": "Licence Number",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "document_number"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "portrait"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Portrait",
+          "label": "Photo",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "portrait"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "driving_privileges"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "Driving Privileges",
+          "label": "Driving Privileges",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "driving_privileges"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "un_distinguishing_sign"
+      ],
+      "mandatory": true,
+      "display": [
+        {
+          "name": "UN Distinguishing Sign",
+          "label": "UN Distinguishing Sign",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "un_distinguishing_sign"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "administrative_number"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Administrative Number",
+          "label": "Administrative Number",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "administrative_number"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "sex"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Sex",
+          "label": "Sex",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "sex"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "height"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Height",
+          "label": "Height",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "height"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "weight"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Weight",
+          "label": "Weight",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "weight"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "eye_colour"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Eye Colour",
+          "label": "Eye Colour",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "eye_colour"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "hair_colour"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Hair Colour",
+          "label": "Hair Colour",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "hair_colour"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "birth_place"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Birth Place",
+          "label": "Place of Birth",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "birth_place"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "resident_address"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Resident Address",
+          "label": "Resident Address",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "resident_address"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "portrait_capture_date"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Portrait Capture Date",
+          "label": "Portrait Capture Date",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "portrait_capture_date"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "age_in_years"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Age in Years",
+          "label": "Age in Years",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "age_in_years"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "age_birth_year"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Age Birth Year",
+          "label": "Birth Year",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "age_birth_year"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "age_over_18"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Age Over 18",
+          "label": "Age Over 18",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "age_over_18"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "age_over_21"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Age Over 21",
+          "label": "Age Over 21",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "age_over_21"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "issuing_jurisdiction"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Issuing Jurisdiction",
+          "label": "Issuing Jurisdiction",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "issuing_jurisdiction"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "nationalities"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Nationalities",
+          "label": "Nationalities",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "Nationalities"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "resident_city"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Resident City",
+          "label": "Resident City",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "resident_city"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "resident_state"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Resident State",
+          "label": "Resident State",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "resident_state"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "resident_postal_code"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Resident Postal Code",
+          "label": "Resident Postal Code",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "resident_postal_code"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "resident_country"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Resident Country",
+          "label": "Resident Country",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "resident_country"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "family_name_national_character"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Family Name (National Characters)",
+          "label": "Last Name (Native)",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "family_name_national_character"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "given_name_national_character"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Given Name (National Characters)",
+          "label": "First Name (Native)",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "given_name_national_character"
+    },
+    {
+      "path": [
+        "org.iso.18013.5.1",
+        "signature_usual_mark"
+      ],
+      "mandatory": false,
+      "display": [
+        {
+          "name": "Signature / Usual Mark",
+          "label": "Signature or Usual Mark",
+          "locale": "en-US"
+        }
+      ],
+      "svg_id": "signature_usual_mark"
+    }
+  ]
+}
