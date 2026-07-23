@@ -273,7 +273,7 @@ images:
   pdp: "ghcr.io/sirosfoundation/go-trust:0.9.0"
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
   # Init/sidecar images
-  opsStackUtilities: "ghcr.io/sirosfoundation/ops_stack_utilities:0.2.0"
+  opsStackUtilities: "ghcr.io/sirosfoundation/ops_stack_utilities:0.2.1"
   alpine: "docker.io/library/alpine:3.24"
   # MongoDB
   mongoCommunityVersion: "7.0.24"

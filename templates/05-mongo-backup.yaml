@@ -1,5 +1,9 @@
 {{- $ns := include "siros-id.namespace" . -}}
 ---
+{{ include "siros-id.certificate" (list . (dict 
+  "name" "mongo-backup-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
+  
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,8 +12,11 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  secretsNamespace: {{ $ns }}
-  values.yaml: | {{- .Values.secrets | toYamlPretty | nindent 4 }}
+  mongoDatabases: "x"
+  agePublicKeys: ""
+  s3HostBase: ""
+  s3AccessKey: ""
+  backupPrefix: {{ $ns | quote }}
 
 ---
 apiVersion: batch/v1
@@ -28,17 +35,23 @@ spec:
     spec:
       template:
         metadata:
-          {{- include "siros-id.labels" (list . (dict "app.kubernetes.io/name" "mongo-backup")) | nindent 10 }}
+          {{- include "siros-id.labels" (list . (dict
+              "app.kubernetes.io/name" "mongo-backup" "mongodb-access" "true")) | nindent 10 }}
         spec:
           {{- include "siros-id.imagePullSecrets" . | nindent 10 }}
-          serviceAccountName: mongo-backup-1
-          {{- include "siros-id.podSecurityContext" (dict "runAsUser" 65532) | nindent 10 }}
+          {{- include "siros-id.podSecurityContext" (dict "runAsUser" 1000) | nindent 10 }}
           resources:
             {{- toYamlPretty .Values.resources.secretGenerator | nindent 12 }}
           volumes:
             - name: main-config
               configMap:
                 name: mongo-backup-main
+            - name: main-secrets
+              secret:
+                secretName: mongo-backup-main
+            - name: mongo-cert
+              secret:
+                secretName: mongo-backup-client-cert
             - name: backups
               emptyDir: {}
           restartPolicy: OnFailure
@@ -51,27 +64,19 @@ spec:
                 - name: main-config
                   mountPath: /main-config
                   readOnly: true
+                - name: main-secrets
+                  mountPath: /main-secrets
+                  readOnly: true
+                - name: mongo-cert
+                  mountPath: /mongo-cert
+                  readOnly: true
                 - name: backups
                   mountPath: /backups
-              env:
-                - name: SECRETS_NAMESPACE
-                  valueFrom:
-                    configMapKeyRef:
-                      name: mongo-backup-main
-                      key: secretsNamespace
               args:
                 - /bin/bash
                 - -c
                 - |
-                  set -euo pipefail
-                  mkdir -p /tmp/chart/templates
-                  cp /main-config/values.yaml /data/Chart.yaml /tmp/chart/
-                  cp /data/template.yaml /tmp/chart/templates/
-                  echo "Starting secret generation with Helm"
-                  helm \
-                    template /tmp/chart --namespace "${SECRETS_NAMESPACE}" \
-                    --dry-run=server --take-ownership \
-                  | kubectl apply -f -
+                  sleep infinity
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -86,33 +91,9 @@ spec:
     matchLabels:
       app.kubernetes.io/name: mongo-backup
   egress:
-    # FIXME: How to do we make sure we are using the correct kube-apiserver IP+port?
     - to:
-        - namespaceSelector:
+        - podSelector:
             matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: kube-apiserver
+              app.kubernetes.io/name: mongodb-svc
       ports:
-        - port: {{ .Values.networkPolicies.kubeApiserverPort }}
-
-{{- if .Values.networkPolicies.ciliumNetworkPolicies }}
-# NOTE: Cilium does not support NetworkPolicy podSelector for host-networked pods
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: mongo-backup
-  namespace: {{ $ns }}
-  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
-  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: mongo-backup
-  egress:
-    - toEntities:
-        - kube-apiserver
-{{- end }}
-{{- end -}}
+        - port: 27017

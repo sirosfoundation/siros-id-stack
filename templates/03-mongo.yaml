@@ -193,6 +193,13 @@ spec:
           db: admin
         - name: userAdminAnyDatabase
           db: admin
+    - name: "CN=mongo-backup-client,OU=clients,O=siros-id"
+      db: $external
+      roles:
+        - name: backup
+          db: admin
+        - name: restore
+          db: admin
     - name: "CN=wallet-backend-client,OU=clients,O=siros-id"
       db: $external
       roles:
