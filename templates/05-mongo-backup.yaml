@@ -1,8 +1,9 @@
 {{- $ns := include "siros-id.namespace" . -}}
+{{- if .Values.mongoBackup.enabled -}}
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "mongo-backup-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
-  
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -12,11 +13,12 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  mongoDatabases: "x"
-  agePublicKeys: ""
-  s3HostBase: ""
-  s3AccessKey: ""
   backupPrefix: {{ $ns | quote }}
+  mongoUri: {{ include "siros-id.mongoUri" (list . "") | quote }}
+  agePublicKeys: | {{- .Values.mongoBackup.agePublicKeys | nindent 4 }}
+  s3HostBase: {{ .Values.mongoBackup.s3HostBase | quote }}
+  s3HostBucket: {{ .Values.mongoBackup.s3HostBucket | quote }}
+  s3BucketName: {{ .Values.mongoBackup.s3BucketName | quote }}
 
 ---
 apiVersion: batch/v1
@@ -41,7 +43,7 @@ spec:
           {{- include "siros-id.imagePullSecrets" . | nindent 10 }}
           {{- include "siros-id.podSecurityContext" (dict "runAsUser" 1000) | nindent 10 }}
           resources:
-            {{- toYamlPretty .Values.resources.secretGenerator | nindent 12 }}
+            {{- toYamlPretty .Values.resources.mongoBackup | nindent 12 }}
           volumes:
             - name: main-config
               configMap:
@@ -72,11 +74,25 @@ spec:
                   readOnly: true
                 - name: backups
                   mountPath: /backups
-              args:
+              env:
+                - name: AWS_CREDENTIAL_FILE
+                  value: /main-secrets/s3CredentialFileContent
+              command:
                 - /bin/bash
                 - -c
                 - |
-                  sleep infinity
+                  set -euo pipefail
+                  OUTPUT_FILE="/backups/$(cat /main-config/backupPrefix)_mongodump_$(date --iso-8601=s).gza.age"
+                  mongodump \
+                    -v --ssl \
+                    --sslCAFile /mongo-cert/ca.crt --sslPEMKeyFile /mongo-cert/tls-combined.pem \
+                    --archive --gzip --oplog \
+                    "$(cat /main-config/mongoUri)" \
+                  | age --recipients-file /main-config/agePublicKeys > "${OUTPUT_FILE}"
+                  s3cmd \
+                    --host "$(cat /main-config/s3HostBase)" \
+                    --host-bucket "$(cat /main-config/s3HostBucket)" \
+                    put "${OUTPUT_FILE}" "s3://$(cat /main-config/s3BucketName)"
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -97,3 +113,4 @@ spec:
               app.kubernetes.io/name: mongodb-svc
       ports:
         - port: 27017
+{{- end -}}

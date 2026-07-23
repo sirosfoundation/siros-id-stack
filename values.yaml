@@ -259,6 +259,13 @@ r2ps:
   extraVolumes: []
   extraVolumeMounts: []
 
+mongoBackup:
+  enabled: false
+  s3HostBase: ""
+  s3HostBucket: ""
+  s3BucketName: ""
+  agePublicKeys: ""
+
 images:
   # Application images
   issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:v0.6.5-sirosid.7"
@@ -471,7 +478,7 @@ secrets:
   mongoBackupMain:
     name: mongo-backup-main
     properties:
-      - s3SecretKey
+      - s3CredentialFileContent
 
 networkPolicies:
   kubeApiserverPort: 6443
