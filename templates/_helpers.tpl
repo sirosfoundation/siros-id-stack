@@ -420,7 +420,6 @@ spec:
 
 {{/* Get Mongo connection URI.
 Call with (list . "database_name").
-Expects the client certificate to be mounted at /client-cert.
 */}}
 {{- define "siros-id.mongoUri" -}}
 {{- $root := index . 0 -}}

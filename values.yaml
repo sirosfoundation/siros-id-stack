@@ -264,6 +264,8 @@ mongoBackup:
   s3HostBase: ""
   s3HostBucket: ""
   s3BucketName: ""
+  s3Port: 443
+  s3AccessKey: ""
   agePublicKeys: ""
 
 images:
@@ -440,8 +442,8 @@ resources:
       memory: 500M
   mongoBackup:
     requests:
-      cpu: 250m
-      memory: 500M
+      cpu: 5m
+      memory: 5M
     limits:
       cpu: 250m
       memory: 500M

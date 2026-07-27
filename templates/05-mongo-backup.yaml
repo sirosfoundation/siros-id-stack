@@ -16,9 +16,12 @@ data:
   backupPrefix: {{ $ns | quote }}
   mongoUri: {{ include "siros-id.mongoUri" (list . "") | quote }}
   agePublicKeys: | {{- .Values.mongoBackup.agePublicKeys | nindent 4 }}
-  s3HostBase: {{ .Values.mongoBackup.s3HostBase | quote }}
-  s3HostBucket: {{ .Values.mongoBackup.s3HostBucket | quote }}
   s3BucketName: {{ .Values.mongoBackup.s3BucketName | quote }}
+  s3AccessKey: {{ .Values.mongoBackup.s3AccessKey | quote }}
+  s3CmdConfig: |
+    [default]
+    host_base = {{ .Values.mongoBackup.s3HostBase }}
+    host_bucket = {{ .Values.mongoBackup.s3HostBucket }}
 
 ---
 apiVersion: batch/v1
@@ -29,7 +32,7 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict "reloader.stakater.com/auto" "true")) | nindent 2 }}
 spec:
-  schedule: "*/15 * * * *"
+  schedule: "* */12 * * *"
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   concurrencyPolicy: Replace
@@ -75,13 +78,22 @@ spec:
                 - name: backups
                   mountPath: /backups
               env:
-                - name: AWS_CREDENTIAL_FILE
-                  value: /main-secrets/s3CredentialFileContent
+                - name: AWS_ACCESS_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: mongo-backup-main
+                      key: s3AccessKey
+                - name: AWS_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: mongo-backup-main
+                      key: s3SecretKey
               command:
                 - /bin/bash
                 - -c
                 - |
                   set -euo pipefail
+                  sleep "$(shuf -i 1-59 -n 1)m"
                   OUTPUT_FILE="/backups/$(cat /main-config/backupPrefix)_mongodump_$(date --iso-8601=s).gza.age"
                   mongodump \
                     -v --ssl \
@@ -90,9 +102,8 @@ spec:
                     "$(cat /main-config/mongoUri)" \
                   | age --recipients-file /main-config/agePublicKeys > "${OUTPUT_FILE}"
                   s3cmd \
-                    --host "$(cat /main-config/s3HostBase)" \
-                    --host-bucket "$(cat /main-config/s3HostBucket)" \
-                    put "${OUTPUT_FILE}" "s3://$(cat /main-config/s3BucketName)"
+                    --config /main-config/s3CmdConfig \
+                    --acl-private put "${OUTPUT_FILE}" "s3://$(cat /main-config/s3BucketName)"
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -113,4 +124,13 @@ spec:
               app.kubernetes.io/name: mongodb-svc
       ports:
         - port: 27017
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: {{- include "siros-id.reservedNetworks.v4" . | nindent 14 }}
+        - ipBlock:
+            cidr: "::/0"
+            except: {{- include "siros-id.reservedNetworks.v6" . | nindent 14 }}
+      ports:
+        - port: {{ .Values.mongoBackup.s3Port }}
 {{- end -}}
