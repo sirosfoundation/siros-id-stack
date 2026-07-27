@@ -206,6 +206,8 @@ walletBackend:
     - android:apk-key-hash:QjozcKdtxyF0wvpLJux1zAi4tQvQ0YjTvwQKtavKe3w
     - android:apk-key-hash:uVM73oLq5x4fV43U6MG9HnEstc4OJ709UEBfZDDO56I
     - android:apk-key-hash:xAfybcO0yPlUA/Gko2tH6oIRb9Y+qa3uVtm0m/qW07Q
+    - android:apk-key-hash:xAfybcO0yPlUA_Gko2tH6oIRb9Y-qa3uVtm0m_qW07Q
+    - android:apk-key-hash:RlbwJAhVMvCUD1Ngog5qMZoLV1s4xr34SLaVCTnLsC8
 
 walletFrontend:
   basePath: ""
