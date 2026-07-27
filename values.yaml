@@ -273,7 +273,7 @@ images:
   issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:v0.6.5-sirosid.7"
   issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:v0.6.5-sirosid.7"
   issuerCore: "ghcr.io/sirosfoundation/vc/issuer:v0.6.5-sirosid.7"
-  verifier: "ghcr.io/sirosfoundation/vc/verifier:v0.6.5-sirosid.7"
+  verifier: "ghcr.io/sirosfoundation/vc/verifier:v0.6.5-sirosid.5"
   walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.7.1"
   walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.7.1"
   walletFrontendConfig: "ghcr.io/sirosfoundation/wallet-frontend:0.5.0-1-sirosid.8"
