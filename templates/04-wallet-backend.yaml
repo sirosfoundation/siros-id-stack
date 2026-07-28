@@ -39,7 +39,7 @@ data:
     storage:
       type: mongodb
       mongodb:
-        uri: mongodb+srv://mongodb-svc.{{ $ns }}.svc.{{ .Values.global.clusterDomain }}/wallet-backend?replicaSet=mongodb&ssl=true&authMechanism=MONGODB-X509
+        uri: {{ include "siros-id.mongoUri" (list . "wallet-backend") }}
         tls_enabled: true
         ca_path: /client-cert/ca.crt
         cert_path: /client-cert/tls.crt

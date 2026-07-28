@@ -4,7 +4,6 @@
    "name" "mongodb-admin-client" "ou" "clients"
    "usages" (list "digital signature" "client auth"))) }}
 
-
 ---
 apiVersion: apps/v1
 kind: Deployment
