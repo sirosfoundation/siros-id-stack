@@ -286,7 +286,6 @@ replicas:
   otlpCollector: 1
   pdp: 1
   issuerRegistry: 1
-  issuerMeta: 1
   issuerApigw: 1
   issuerCore: 1
   verifier: 1
@@ -301,8 +300,6 @@ podDisruptionBudget:
   pdp:
     minAvailable: 0
   issuerRegistry:
-    minAvailable: 0
-  issuerMeta:
     minAvailable: 0
   issuerApigw:
     minAvailable: 0
@@ -351,13 +348,6 @@ resources:
     limits:
       cpu: 150m
       memory: 450M
-  issuerMeta:
-    requests:
-      cpu: 5m
-      memory: 30M
-    limits:
-      cpu: 10m
-      memory: 50M
   issuerApigw:
     requests:
       cpu: 50m
