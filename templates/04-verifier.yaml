@@ -66,6 +66,8 @@ data:
         {{- range .Values.features.extraWallets }}
         {{ .displayName | quote }}: {{ .url }}/cb
         {{- end }}
+      digital_credentials:
+        enable: {{ .Values.verifier.dcapi.enabled }}
       inbound:
         openid4vp:
           token_endpoint: https://{{ $hostnameVerifier }}/token
