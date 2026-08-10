@@ -54,6 +54,7 @@ data:
         key_config:
           private_key_path: /sign-cert/tls.key
           chain_path: /sign-cert-chain/tls.crt
+        section_size: {{ .Values.issuer.registry.sectionSize }}
   secrets.yaml.template: |
     registry:
       admin_gui:

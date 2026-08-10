@@ -6,6 +6,10 @@
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
 
 ---
+{{ include "siros-id.certificate" (list . (dict 
+  "name" "wallet-backend-as" "ou" "signers" "usages" (list "digital signature" "content commitment"))) }}
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -33,6 +37,16 @@ data:
       cors:
         allowed_origins:
           - https://{{ $hostnameWalletFrontend }}
+        allow_credentials: true
+    as:
+      enabled: true
+      legacy:
+        enabled: false
+      signing_key_path: /as-cert/tls.key
+      rules_dir: /app/rules
+      default_max_tac: rwlid
+      external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
+      issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
     trust:
       pdp_url: {{ .Values.pdp.externalUrl | quote }}
       registry_url: https://{{ include "siros-id.hostname.walletBackend" . }}/registry
@@ -106,6 +120,9 @@ spec:
         - name: client-cert
           secret:
             secretName: wallet-backend-client-cert
+        - name: as-cert
+          secret:
+            secretName: wallet-backend-as-cert
         - name: cache
           emptyDir: {}
         - name: vctms
@@ -134,13 +151,16 @@ spec:
             - name: client-cert
               mountPath: /client-cert
               readOnly: true
+            - name: as-cert
+              mountPath: /as-cert
+              readOnly: true
             - name: cache
               mountPath: /cache
             - name: vctms
               mountPath: /vctms
           args:
             - -mode
-            - backend,registry,engine
+            - backend,registry,engine,auth
             - -config
             - /main-config/backend.yaml
             - -registry-config
