@@ -13,6 +13,33 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: wallet-backend-as-rules
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  as-rules.rules: |-
+    ; --- Shape A: acr present ---
+    (token (acr (*)) (aud (*)) (sub (*)) (tac r))
+    (token (acr (*)) (aud (*)) (sub (*)) (tac l))
+    (token (acr (*)) (aud (*)) (sub (*)) (tac rl))
+    (token (acr (*)) (aud (*)) (sub (*)) (tac (*)) (tenant_id (*)))
+
+    ; --- Shape B: no acr, sub present ---
+    (token (aud (*)) (sub (*)) (tac r))
+    (token (aud (*)) (sub (*)) (tac l))
+    (token (aud (*)) (sub (*)) (tac rl))
+    (token (aud (*)) (sub (*)) (tac (*)) (tenant_id (*)))
+
+    ; --- Shape C: "anonymous" (acr present, no sub), read-only, restricted audiences ---
+    (token (acr (*)) (aud (* set wallet-backend wallet-registry)) (tac r) (tenant_id (*)))
+    (token (acr (*)) (aud (* set wallet-backend wallet-registry)) (tac l) (tenant_id (*)))
+    (token (acr (*)) (aud (* set wallet-backend wallet-registry)) (tac rl) (tenant_id (*)))
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: wallet-backend-main
   namespace: {{ $ns }}
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
@@ -123,6 +150,9 @@ spec:
         - name: as-cert
           secret:
             secretName: wallet-backend-as-cert
+        - name: as-rules
+          configMap:
+            name: wallet-backend-as-rules
         - name: cache
           emptyDir: {}
         - name: vctms
@@ -153,6 +183,9 @@ spec:
               readOnly: true
             - name: as-cert
               mountPath: /as-cert
+              readOnly: true
+            - name: as-rules
+              mountPath: /app/rules
               readOnly: true
             - name: cache
               mountPath: /cache
