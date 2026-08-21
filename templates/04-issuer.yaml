@@ -264,6 +264,13 @@ data:
       registry_public_url: https://{{ $hostnameIssuerRegistry }}
       issuer_client: {{- include "siros-id.vc.config.grpcClient" "issuer-core" | nindent 8 }}
       registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 8 }}
+      issuer_metadata:
+        display:
+          - locale: en-US
+            name: {{ include "siros-id.displayName" . }}
+            logo:
+              uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
+              alt_text: Logotype for issuer
       {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
       identity_mapping_import:
         file_paths:
