@@ -54,6 +54,7 @@ data:
         key_config:
           private_key_path: /sign-cert/tls.key
           chain_path: /sign-cert-chain/tls.crt
+        section_size: {{ .Values.issuer.registry.sectionSize }}
   secrets.yaml.template: |
     registry:
       admin_gui:
@@ -265,6 +266,12 @@ data:
       registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 8 }}
       issuer_metadata:
         mdoc_iacas_uri: https://{{ $hostnameIssuer }}/iacas
+        display:
+          - locale: en-US
+            name: {{ include "siros-id.displayName" . }}
+            logo:
+              uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
+              alt_text: Logotype for issuer
       {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
       identity_mapping_import:
         file_paths:

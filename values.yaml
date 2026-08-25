@@ -135,7 +135,6 @@ issuer:
       clientId: ""
       redirectUri: ""
       scopes: ["openid", "email"]
-    
   authProviders:
     oidc:
       enabled: false
@@ -143,6 +142,11 @@ issuer:
       #clientId: "demo-issuer-shared"
       issuerUrl: ""
       clientId: ""
+  registry:
+    # From the registry documentation: "SectionSize is the number of entries (decoys) per section."
+    # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
+    # and affect risk of information leakage.
+    sectionSize: 1000000
 
 verifier:
   dcapi:
@@ -275,15 +279,15 @@ mongoBackup:
 
 images:
   # Application images
-  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:v0.6.5-sirosid.8"
-  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:v0.6.5-sirosid.8"
-  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:v0.6.5-sirosid.8"
-  verifier: "ghcr.io/sirosfoundation/vc/verifier:v0.6.5-sirosid.8"
-  walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.8.0"
-  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.8.0"
-  walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.5.0-1-sirosid.8"
+  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.7.0-sirosid.1"
+  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.7.0-sirosid.1"
+  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.0-sirosid.1"
+  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.0-sirosid.1"
+  walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.12.0"
+  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.12.0"
+  walletFrontendConfig: "ghcr.io/sirosfoundation/wallet-frontend:0.5.0-1-sirosid.10"
+  pdp: "ghcr.io/sirosfoundation/go-trust:0.13.0"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
-  pdp: "ghcr.io/sirosfoundation/go-trust:0.9.0"
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
   # Init/sidecar/shared images
   opsStackUtilities: "ghcr.io/sirosfoundation/ops_stack_utilities:0.2.1"
