@@ -514,7 +514,9 @@ Params:
   command:
     - /bin/sh
     - -c
-    - envsubst < /main-config/secrets.yaml.template > /secrets-rendered/secrets.yaml
+    - |
+      umask u=r,g-rwx,o-rwx
+      envsubst < /main-config/secrets.yaml.template > /secrets-rendered/secrets.yaml
 {{- end -}}
 
 

@@ -6,6 +6,37 @@
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
 
 ---
+{{ include "siros-id.certificate" (list . (dict 
+  "name" "wallet-backend-as" "ou" "signers" "usages" (list "digital signature" "content commitment"))) }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wallet-backend-as-rules
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  as-rules.rules: |-
+    ; --- Shape A: acr present ---
+    (token (acr (*)) (aud (*)) (sub (*)) (tac r))
+    (token (acr (*)) (aud (*)) (sub (*)) (tac l))
+    (token (acr (*)) (aud (*)) (sub (*)) (tac rl))
+    (token (acr (*)) (aud (*)) (sub (*)) (tac (*)) (tenant_id (*)))
+
+    ; --- Shape B: no acr, sub present ---
+    (token (aud (*)) (sub (*)) (tac r))
+    (token (aud (*)) (sub (*)) (tac l))
+    (token (aud (*)) (sub (*)) (tac rl))
+    (token (aud (*)) (sub (*)) (tac (*)) (tenant_id (*)))
+
+    ; --- Shape C: "anonymous" (acr present, no sub), read-only, restricted audiences ---
+    (token (acr (*)) (aud (* set wallet-backend wallet-registry)) (tac r) (tenant_id (*)))
+    (token (acr (*)) (aud (* set wallet-backend wallet-registry)) (tac l) (tenant_id (*)))
+    (token (acr (*)) (aud (* set wallet-backend wallet-registry)) (tac rl) (tenant_id (*)))
+
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -33,6 +64,16 @@ data:
       cors:
         allowed_origins:
           - https://{{ $hostnameWalletFrontend }}
+        allow_credentials: true
+    as:
+      enabled: true
+      legacy:
+        enabled: false
+      signing_key_path: /as-cert/tls.key
+      rules_dir: /app/rules
+      default_max_tac: rwlid
+      external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
+      issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
     trust:
       pdp_url: {{ .Values.pdp.externalUrl | quote }}
       registry_url: https://{{ include "siros-id.hostname.walletBackend" . }}/registry
@@ -106,6 +147,12 @@ spec:
         - name: client-cert
           secret:
             secretName: wallet-backend-client-cert
+        - name: as-cert
+          secret:
+            secretName: wallet-backend-as-cert
+        - name: as-rules
+          configMap:
+            name: wallet-backend-as-rules
         - name: cache
           emptyDir: {}
         - name: vctms
@@ -134,13 +181,19 @@ spec:
             - name: client-cert
               mountPath: /client-cert
               readOnly: true
+            - name: as-cert
+              mountPath: /as-cert
+              readOnly: true
+            - name: as-rules
+              mountPath: /app/rules
+              readOnly: true
             - name: cache
               mountPath: /cache
             - name: vctms
               mountPath: /vctms
           args:
             - -mode
-            - backend,registry,engine
+            - backend,registry,engine,auth
             - -config
             - /main-config/backend.yaml
             - -registry-config
