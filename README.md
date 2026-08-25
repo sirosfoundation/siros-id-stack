@@ -86,3 +86,17 @@ db.runCommand( { listCollections: 1 } )
 use issuer-apigw_cache
 db.dropDatabase()
 ```
+
+### Database restore
+Download and decrypt the MongoDB backup archive from your configured S3-compatible bucket.
+Upload the decrypted file to the `admin-tools` pod using `kubectl cp`.
+Run the following command to restore a specfic database (`--drop` deletes the target collection
+before restore):
+
+```
+$ cat backup.gza | mongorestore \
+    -v --ssl \
+    --sslCAFile /mongo-cert/ca.crt --sslPEMKeyFile /mongo-cert/tls-combined.pem \
+    --archive --gzip --drop --preserveUUID \
+    'mongodb+srv://mongodb-svc.siros-tenant-<YOUR-TENANT-ID>.svc.cluster.local/<YOUR-DATABASE>?replicaSet=mongodb&ssl=true&authMechanism=MONGODB-X509'
+```
