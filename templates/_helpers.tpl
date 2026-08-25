@@ -94,8 +94,12 @@ annotations: {{- toYamlPretty . | nindent 2 }}
 {{- $_ := required "You must define credential types in the value features.credentialTypes" .Values.features.credentialTypes -}}
 {{- range $id, $data := .Values.features.credentialTypes }}
 {{ $id | quote }}:
-  vctm_file_path: /vctms/{{ $id }}.json
   format: {{ $data.format }}
+  {{- if eq $data.format "mso_mdoc" }}
+  mddl_file_path: /vctms/{{ $id }}.json
+  {{- else }}
+  vctm_file_path: /vctms/{{ $id }}.json
+  {{- end }}
 {{- end }}
 {{- end -}}
 
