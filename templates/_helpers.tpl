@@ -549,3 +549,12 @@ api_auth:
     scopes: {{- toYamlPretty .Values.issuer.apiAuth.oidc.scopes | nindent 4 }}
 {{- end -}}
 {{- end -}}
+
+{{/* Added for backwards compatibility with old image name */}}
+{{- define "siros-id.images.walletFrontend" -}}
+{{- if .Values.images.walletFrontendConfig -}}
+{{- .Values.images.walletFrontendConfig -}}
+{{- else -}}
+{{- .Values.images.walletFrontend -}}
+{{- end -}}
+{{- end -}}

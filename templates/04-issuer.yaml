@@ -202,7 +202,7 @@ spec:
 
 ---
 {{ include "siros-id.certificate" (list . (dict 
-  "name" "issuer-core-sign" "literalSubject" (printf "C=%s,OU=signers,O=siros-id" $hostnameIssuer) "dnsNames" (list $hostnameIssuer) "usages" (list "digital signature" "content commitment")
+  "name" "issuer-core-sign" "literalSubject" (printf "CN=%s,OU=signers,O=siros-id" $hostnameIssuer) "dnsNames" (list $hostnameIssuer) "usages" (list "digital signature" "content commitment")
   "rotationPolicy" "Never" "issuerRef" .Values.global.certManager.credentialSigning.issuerRef "duration" "8760h")) }}
 
 ---

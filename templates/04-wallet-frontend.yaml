@@ -87,7 +87,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: config-gen
-          image: {{ .Values.images.walletFrontend | quote }}
+          image: {{ include "siros-id.images.walletFrontend" . | quote }}
           {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
           {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
           resources:
