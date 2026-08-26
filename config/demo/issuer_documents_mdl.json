@@ -15,26 +15,19 @@
       "age_over_21": true,
       "age_over_65": false,
       "birth_place": "Tulegatan 11",
-      "birthdate": "1996-01-30",
-      "document_number": "cffc96b872e9",
+      "document_number": "doc-mdl-mirren-authentic_source_person_id_100",
       "expiry_date": "2033-01-01",
       "family_name": "Mirren",
       "given_name": "Helen",
-      "issuance_date": "2024-01-01",
       "issuing_authority": "SUNET",
       "issuing_country": "SE",
       "issuing_jurisdiction": "Stockholm",
-      "nationalities": [
-        "SE"
-      ],
-      "personal_administrative_number": "pan-100",
-      "picture": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
       "resident_address": "Tulegatan 11, Stockholm",
       "resident_city": "Stockholm",
       "resident_country": "SE",
       "resident_postal_code": "11353",
       "resident_state": "Stockholm",
-      "sex": 1,
+      "sex": 0,
       "driving_privileges": [
         {
           "vehicle_category_code": "B",
@@ -42,7 +35,14 @@
           "expiry_date": "2033-01-01"
         }
       ],
-      "un_distinguishing_sign": "S"
+      "un_distinguishing_sign": "S",
+      "birth_date": "1996-01-30",
+      "portrait": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
+      "administrative_number": "pan-authentic_source_person_id_100",
+      "nationalities": [
+        "SE"
+      ],
+      "issue_date": "2024-01-01"
     }
   },
   "102": {
@@ -61,20 +61,13 @@
       "age_over_21": true,
       "age_over_65": false,
       "birth_place": "Tulegatan 11",
-      "birthdate": "1988-09-09",
-      "document_number": "57de3dedf371",
+      "document_number": "doc-mdl-oldman-authentic_source_person_id_102",
       "expiry_date": "2033-01-01",
       "family_name": "Oldman",
       "given_name": "Gary",
-      "issuance_date": "2024-01-01",
       "issuing_authority": "SUNET",
       "issuing_country": "SE",
       "issuing_jurisdiction": "Stockholm",
-      "nationalities": [
-        "SE"
-      ],
-      "personal_administrative_number": "pan-102",
-      "picture": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
       "resident_address": "Tulegatan 11, Stockholm",
       "resident_city": "Stockholm",
       "resident_country": "SE",
@@ -88,7 +81,14 @@
           "expiry_date": "2033-01-01"
         }
       ],
-      "un_distinguishing_sign": "S"
+      "un_distinguishing_sign": "S",
+      "birth_date": "1988-09-09",
+      "portrait": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
+      "administrative_number": "pan-authentic_source_person_id_102",
+      "nationalities": [
+        "SE"
+      ],
+      "issue_date": "2024-01-01"
     }
   }
 }
