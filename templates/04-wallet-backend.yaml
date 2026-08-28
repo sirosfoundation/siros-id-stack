@@ -70,7 +70,7 @@ data:
       legacy:
         enabled: false
       signing_key_path: /as-cert/tls.key
-      rules_dir: /app/rules
+      rules_dir: /as-rules
       default_max_tac: rwlid
       external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
       issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
@@ -185,7 +185,7 @@ spec:
               mountPath: /as-cert
               readOnly: true
             - name: as-rules
-              mountPath: /app/rules
+              mountPath: /as-rules
               readOnly: true
             - name: cache
               mountPath: /cache
