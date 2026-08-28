@@ -570,10 +570,11 @@ data:
   config.yaml: |
     common:
       production: {{ .Values.features.production }}
-      ha:
-        enable: true
       {{- include "siros-id.vc.config.tracing" . | nindent 6 }}
       credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 8 }}
+      # TODO: Workaround for https://github.com/SUNET/vc/issues/622
+      mongo:
+        uri: "temporary-placeholder"
     issuer:
       api_server:
         addr: ":8081"
