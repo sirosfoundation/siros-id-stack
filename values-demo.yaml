@@ -59,6 +59,32 @@ features:
                 - given_name
                 - family_name
                 - birthdate
+    "pid_mdoc":
+      vct: eu.europa.ec.eudi.pid.1
+      vctm:
+        file: "config/demo/vctm_pid_mdoc.json"
+      format: mso_mdoc
+      issuance:
+        authProvider: oidc
+        source: "datastore"
+        authOptions:
+          claims:
+            - given_name
+            - family_name
+            - birthdate
+    "mdl":
+      vct: org.iso.18013.5.1.mDL
+      format: mso_mdoc
+      issuance:
+        authProvider: oidc
+        source: "datastore"
+        authOptions:
+          claims:
+            - given_name
+            - family_name
+            - birthdate
+      vctm:
+        file: "config/demo/vctm_mdl.json"
 
 issuer:
   identitymappingImport:
@@ -78,6 +104,10 @@ issuer:
         file: "config/demo/issuer_documents_ehic.json"
       diploma:
         file: "config/demo/issuer_documents_diploma.json"
+      pid_mdoc:
+        file: "config/demo/issuer_documents_pid_mdoc.json"
+      mdl:
+        file: "config/demo/issuer_documents_mdl.json"
     users:
       - "100"
       - "102"
