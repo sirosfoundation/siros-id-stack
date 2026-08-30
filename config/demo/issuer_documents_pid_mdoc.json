@@ -36,7 +36,8 @@
       "resident_postal_code": "11353",
       "resident_street": "Tulegatan",
       "resident_house_number": "11",
-      "birth_place": "Tulegatan 11, Stockholm, SE"
+      "birth_place": "Tulegatan 11, Stockholm, SE",
+      "age_over_18": true
     }
   },
   "102": {
@@ -76,7 +77,8 @@
       "resident_postal_code": "11353",
       "resident_street": "Tulegatan",
       "resident_house_number": "11",
-      "birth_place": "Tulegatan 11, Stockholm, SE"
+      "birth_place": "Tulegatan 11, Stockholm, SE",
+      "age_over_18": true
     }
   }
 }

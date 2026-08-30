@@ -17,6 +17,12 @@ data:
       level: debug
       format: json
     registries:
+      {{- if .Values.pdp.disableTrustValidation }}
+      always_trusted:
+        enabled: true
+        name: Always-Allow
+        description: Trust validation bypass (danger zone)
+      {{- else }}
       {{- if .Values.pdp.extraRegistries }}
       {{- toYamlPretty .Values.pdp.extraRegistries | nindent 6 }}
       {{- end }}
@@ -58,6 +64,7 @@ data:
           {{- range .Values.features.extraIssuers }}
           - {{ .url }}
           {{- end }}
+      {{- end }}
       {{- end }}
 
 ---
