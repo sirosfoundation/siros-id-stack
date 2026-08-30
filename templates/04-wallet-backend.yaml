@@ -1,6 +1,86 @@
 {{- $ns := include "siros-id.namespace" . -}}
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
 {{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
+
+{{/*
+go-wallet-backend's two config files. Named templates so
+siros-id.vc.renderConfig can deep-merge walletBackend.extraConfig /
+walletBackend.registryExtraConfig over them - go-wallet-backend's
+pkg/config surface (wallet_provider/WIA, AS rules, trust policy, oidc_gate,
+storage backends) is wider than what a tenant normally sets here.
+*/}}
+{{- define "siros-id.walletBackend.config" -}}
+{{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
+{{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
+logging:
+  level: debug
+  format: json
+server:
+  port: 8080
+  engine_port: 8082
+  admin_token_path: /main-secrets/adminToken
+  rp_name: {{ .Values.tenant.id }} Wallet
+  rp_id: {{ $hostnameWalletFrontend }}
+  rp_origins:
+    - {{ include "siros-id.origins.walletFrontend" . }}
+    {{- range .Values.walletBackend.extraRpOrigins }}
+    - {{ . }}
+    {{- end }}
+  base_url: https://{{ include "siros-id.hostname.walletBackend" . }}
+  cors:
+    allowed_origins:
+      - https://{{ $hostnameWalletFrontend }}
+    allow_credentials: true
+as:
+  enabled: true
+  legacy:
+    enabled: false
+  signing_key_path: /as-cert/tls.key
+  rules_dir: /as-rules
+  default_max_tac: rwlid
+  external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
+  issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
+trust:
+  pdp_url: {{ .Values.pdp.externalUrl | quote }}
+  registry_url: https://{{ include "siros-id.hostname.walletBackend" . }}/registry
+storage:
+  type: mongodb
+  mongodb:
+    uri: {{ include "siros-id.mongoUri" (list . "wallet-backend") }}
+    tls_enabled: true
+    ca_path: /client-cert/ca.crt
+    cert_path: /client-cert/tls.crt
+    key_path: /client-cert/tls.key
+    database: wallet-backend
+jwt:
+  secret_path: /main-secrets/jwtSecret
+{{- end -}}
+
+{{- define "siros-id.walletBackend.registryConfig" -}}
+logging:
+  level: debug
+  format: json
+server:
+  port: 8080 
+source:
+  url: https://registry.siros.org/.well-known/vctm-registry.json
+  poll_interval: 3m
+  timeout: 30s
+  local_overrides:
+    - /vctms
+cache:
+  path: /cache/vctm-cache.json
+  max_age: 10m
+filter:
+  include_patterns: []
+  exclude_patterns: []
+image_embed:
+  enabled: true
+  max_image_size: 10485760
+jwt:
+  require_auth: false
+{{- end -}}
+
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
@@ -45,72 +125,8 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  backend.yaml: |-
-    logging:
-      level: debug
-      format: json
-    server:
-      port: 8080
-      engine_port: 8082
-      admin_token_path: /main-secrets/adminToken
-      rp_name: {{ .Values.tenant.id }} Wallet
-      rp_id: {{ $hostnameWalletFrontend }}
-      rp_origins:
-        - {{ include "siros-id.origins.walletFrontend" . }}
-        {{- range .Values.walletBackend.extraRpOrigins }}
-        - {{ . }}
-        {{- end }}
-      base_url: https://{{ include "siros-id.hostname.walletBackend" . }}
-      cors:
-        allowed_origins:
-          - https://{{ $hostnameWalletFrontend }}
-        allow_credentials: true
-    as:
-      enabled: true
-      legacy:
-        enabled: false
-      signing_key_path: /as-cert/tls.key
-      rules_dir: /as-rules
-      default_max_tac: rwlid
-      external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
-      issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
-    trust:
-      pdp_url: {{ .Values.pdp.externalUrl | quote }}
-      registry_url: https://{{ include "siros-id.hostname.walletBackend" . }}/registry
-    storage:
-      type: mongodb
-      mongodb:
-        uri: {{ include "siros-id.mongoUri" (list . "wallet-backend") }}
-        tls_enabled: true
-        ca_path: /client-cert/ca.crt
-        cert_path: /client-cert/tls.crt
-        key_path: /client-cert/tls.key
-        database: wallet-backend
-    jwt:
-      secret_path: /main-secrets/jwtSecret
-  registry.yaml: |-
-    logging:
-      level: debug
-      format: json
-    server:
-      port: 8080 
-    source:
-      url: https://registry.siros.org/.well-known/vctm-registry.json
-      poll_interval: 3m
-      timeout: 30s
-      local_overrides:
-        - /vctms
-    cache:
-      path: /cache/vctm-cache.json
-      max_age: 10m
-    filter:
-      include_patterns: []
-      exclude_patterns: []
-    image_embed:
-      enabled: true
-      max_image_size: 10485760
-    jwt:
-      require_auth: false
+  backend.yaml: |- {{- include "siros-id.vc.renderConfig" (list . "siros-id.walletBackend.config" .Values.walletBackend.extraConfig) | nindent 4 }}
+  registry.yaml: |- {{- include "siros-id.vc.renderConfig" (list . "siros-id.walletBackend.registryConfig" .Values.walletBackend.registryExtraConfig) | nindent 4 }}
 
 ---
 apiVersion: apps/v1

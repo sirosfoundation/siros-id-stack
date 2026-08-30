@@ -103,6 +103,23 @@ features:
   #           - birthdate 
   #     vctm:
   #       file: config/demo/vctm_demo_3.json
+  #   # An ISO 18013-5 mdoc type carries an MDDL schema instead of a VCTM.
+  #   # Set mdocSchema (not vctm) and format: mso_mdoc - vc validates that an
+  #   # mso_mdoc scope has mddl_file_path and rejects vctm_file_path.
+  #   "org.iso.18013.5.1.mDL":
+  #     doctype: org.iso.18013.5.1.mDL
+  #     format: mso_mdoc
+  #     issuance:
+  #       authProvider: oidc
+  #       source: "datastore"
+  #       authOptions:
+  #         claims:
+  #           - given_name
+  #           - family_name
+  #     mdocSchema:
+  #       file: config/demo/mdl.mdoc.json
+  # Either of vctm/mdocSchema may instead be fetched at runtime by setting
+  # vctmUrl/mddlUrl on the type, in which case no file is mounted for it.
   credentialTypes: {}
 
 pdp:
@@ -113,6 +130,12 @@ pdp:
   # See go-trust config for more details.
   # https://github.com/sirosfoundation/go-trust/
   extraRegistries: {}
+  # Deep-merged over the rendered PDP config; see siros-id.vc.renderConfig.
+  # Reaches the parts of go-trust's config this chart doesn't model
+  # (policies, always/never-trusted, OIDFed trust anchors, cache TTLs,
+  # additional_trusted_roots) without hand-writing all of extraRegistries.
+  # A list here REPLACES the list it merges over.
+  extraConfig: {}
 
 issuer:
   # max 1MB in total, use the API if you need more, since the feature is for quick testing.
@@ -142,15 +165,134 @@ issuer:
       #clientId: "demo-issuer-shared"
       issuerUrl: ""
       clientId: ""
+      # Seconds an OIDC login session stays valid. Unset uses vc's default.
+      sessionDuration: ~
+
+  # Per-service settings for the three issuance-side deployments. They share
+  # one config schema but are three separate services: apigw is the public
+  # OpenID4VCI face, core is an internal gRPC signing service, registry holds
+  # the token status lists.
+  apigw:
+    cors:
+      # allowed_origins is derived from the wallet frontend plus
+      # features.extraWallets; these two are only needed if a client sends
+      # methods/headers outside vc's own defaults.
+      allowedMethods: []
+      allowedHeaders: []
+    openid4vci:
+      # Unset uses vc's default of authorization_code plus
+      # urn:ietf:params:oauth:grant-type:pre-authorized_code. Narrowing this
+      # turns off a whole issuance flow, so set it deliberately.
+      grantTypes: []
+      refreshTokenDuration: ~
+    # See verifier.walletAttestation - same block, issuance side.
+    walletAttestation:
+      enabled: false
+      mode: ""
+      policy: {}
+    extraConfig: {}
+  core:
+    jwtAttribute:
+      # Unset leaves vc's own defaults for both.
+      enableNotBefore: ~
+      validDuration: ~
+    mdoc:
+      # certificate_chain_path is always the signing chain; these two are the
+      # only tunable parts. Unset uses vc's defaults (8760h, SHA-256).
+      defaultValidity: ""
+      digestAlgorithm: ""
+    # Attach a random pseudonym_seed claim, for ZK pairwise-pseudonym
+    # derivation. Unset leaves it out of the config entirely.
+    pseudonymSeed: ~
+    extraConfig: {}
   registry:
     # From the registry documentation: "SectionSize is the number of entries (decoys) per section."
     # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
-    # and affect risk of information leakage.
+    # and affect risk of information leakage. First boot builds this many
+    # entries in memory as one slice before a single bulk insert, so a small
+    # machine needs a smaller value.
     sectionSize: 1000000
-
+    tokenRefreshInterval: ""
+    rateLimitRequestsPerMinute: ~
+    adminGui:
+      enabled: false
+      username: "admin"
+    extraConfig: {}
 verifier:
   oidc_provider:
     enabled: true
+    subjectType: pairwise
+    enableUserinfo: true
+    # Token/session lifetimes in seconds. Unset means "use vc's own default"
+    # (session 3600, code 300, access 3600, id 3600, refresh 86400) rather
+    # than zero - don't set these to 0 to mean "default".
+    sessionDuration: ~
+    codeDuration: ~
+    accessTokenDuration: ~
+    idTokenDuration: ~
+    refreshTokenDuration: ~
+    # Confidential OIDC clients of the verifier's own OP, for relying parties
+    # that log users in via a presentation. Each entry:
+    #   - client_id, client_secret, client_name
+    #     redirect_uris: [], allowed_scopes: []
+    #     token_endpoint_auth_method, grant_types: [], response_types: []
+    # A client_secret belongs in the secrets file, not here.
+    staticClients: []
+  # How this verifier identifies itself in an OpenID4VP request. Empty uses
+  # vc's default, "x509_san_dns", which derives the client_id from
+  # public_url - so the PDP whitelist entry must match the public hostname.
+  # "did" instead publishes /.well-known/did.json and requires `did` below.
+  clientIdScheme: ""
+  did: ""
+  # Informational VP formats/algorithms advertised to wallets, e.g.
+  #   "dc+sd-jwt": {sd-jwt_alg_values: [ES256], kb-jwt_alg_values: [ES256]}
+  # This is a top-level verifier field in vc's schema, NOT a member of
+  # inbound.openid4vp - nesting it there silently does nothing, since vc
+  # unmarshals its config non-strictly.
+  preferredVpFormats: {}
+  # Seconds a presentation may stay pending. Unset uses vc's default (300).
+  presentationTimeout: ~
+  # W3C Digital Credentials API (browser-mediated presentation).
+  digitalCredentials:
+    enabled: false
+    # Send the request object as a signed JWT (JAR) rather than plain JSON.
+    useJar: false
+    # Preferred credential formats, most-preferred first. Unset uses vc's
+    # default ["vc+sd-jwt", "dc+sd-jwt", "mso_mdoc"].
+    preferredFormats: []
+    # One of dc_api.jwt (encrypted), direct_post.jwt (signed), direct_post.
+    # Unset uses vc's default, dc_api.jwt.
+    responseMode: ""
+    # Fall back to a QR code when the browser has no DC API. Unset uses
+    # vc's default (true).
+    allowQrFallback: ~
+    deepLinkScheme: ""
+  # Accept provider-signed wallet attestations instead of requiring every
+  # wallet to be pre-registered as a client. See
+  # siros-id.vc.config.walletAttestation for what `mode` pins.
+  walletAttestation:
+    enabled: false
+    mode: ""
+    policy: {}
+  # Mirrors of the zk-circuits catalog, tried in order. Only consulted by
+  # verifier images built with the `zknative` tag. Unset uses vc's default
+  # (https://zk-circuits.fly.dev).
+  zkCircuits:
+    sources: []
+  # Deep-merged over everything above; see siros-id.vc.renderConfig. Use for
+  # parts of vc's verifier config this chart doesn't model. Two rules:
+  #   - it is rooted at the WHOLE config file, so it needs the `verifier:`
+  #     (or `common:`) wrapper - omitting it silently writes a top-level key
+  #     vc ignores, since vc unmarshals non-strictly;
+  #   - a list here REPLACES the list it merges over, it does not append.
+  # extraConfig:
+  #   verifier:
+  #     credential_display:
+  #       enable: true
+  #   common:
+  #     log:
+  #       level: debug
+  extraConfig: {}
   # Example configuration for extra presentation request templates
   # presentationRequestTemplates:
   #   "demo_3-all":
@@ -177,6 +319,12 @@ verifier:
   presets: {}
 
 walletBackend:
+  # Deep-merged over the rendered backend.yaml / registry.yaml; see
+  # siros-id.vc.renderConfig. Reaches parts of go-wallet-backend's config
+  # this chart doesn't model (wallet_provider/WIA, AS rules, storage
+  # backends). A list here REPLACES the list it merges over.
+  extraConfig: {}
+  registryExtraConfig: {}
   # oidcGate uses the following redirectURI: https://<frontend-url>/id/<tenant-id>/oidc/cb
   # oidcGate:
   #   mode: "both"
@@ -484,7 +632,14 @@ secrets:
   mongoBackupMain:
     name: mongo-backup-main
     properties:
-      - s3CredentialFileContent
+      # The CronJob reads this exact key (templates/05-mongo-backup.yaml's
+      # AWS_SECRET_KEY secretKeyRef); it was previously declared as
+      # s3CredentialFileContent, which nothing reads. Unlike the other
+      # entries here this one is NOT produced by the secret generator - an
+      # S3 secret key has to be the real credential, not a random string -
+      # so create the mongo-backup-main Secret yourself when enabling
+      # mongoBackup.
+      - s3SecretKey
 
 networkPolicies:
   kubeApiserverPort: 6443
