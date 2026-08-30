@@ -1,4 +1,5 @@
 {{- $ns := include "siros-id.namespace" . -}}
+{{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -44,8 +45,7 @@ data:
             {{- range .Values.features.extraIssuers }}
             - {{ .url }}
             {{- end }}
-            - https://{{ include "siros-id.hostname.verifier" . }}
-            {{- range .Values.features.extraVerifiers }}
+            {{- range $verifiers }}
             - {{ .url }}
             {{- end }}
         actions:

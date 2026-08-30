@@ -69,7 +69,7 @@ annotations: {{- toYamlPretty . | nindent 2 }}
 {{- end -}}
 
 {{- define "siros-id.displayName" -}}
-{{- .Values.tenant.displayName | default (.Values.tenant.id) | quote -}}
+{{- .Values.tenant.displayName | default (.Values.tenant.id) -}}
 {{- end -}}
 
 {{- define "siros-id.originFromUrl" -}}
@@ -556,5 +556,23 @@ api_auth:
 {{- .Values.images.walletFrontendConfig -}}
 {{- else -}}
 {{- .Values.images.walletFrontend -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "siros-id.verifiers" -}}
+{{- if .Values.verifier.enabled -}}
+{{-
+  concat
+    (list
+      (dict
+        "displayName" (include "siros-id.displayName" .)
+        "url" (printf "https://%s" (include "siros-id.hostname.verifier" .))
+      )
+    )
+    .Values.features.extraVerifiers
+  | toYamlPretty
+-}}
+{{- else -}}
+{{- .Values.features.extraVerifiers | toYamlPretty -}}
 {{- end -}}
 {{- end -}}

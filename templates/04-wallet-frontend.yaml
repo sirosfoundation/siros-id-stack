@@ -11,7 +11,7 @@ metadata:
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
   basePath: {{ $basePathWalletFrontend }}
-  displayName: {{ include "siros-id.displayName" . }}
+  displayName: {{ include "siros-id.displayName" . | quote}}
   rpId: {{ $hostnameWalletFrontend }}
   publicUrl: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}
   publicRedirectUrl: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb

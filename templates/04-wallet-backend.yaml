@@ -1,6 +1,7 @@
 {{- $ns := include "siros-id.namespace" . -}}
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
 {{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
+{{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
@@ -332,7 +333,7 @@ data:
     tenants:
       - id: {{ .Values.tenant.id }}
         name: {{ .Values.tenant.id }}
-        display_name: {{ include "siros-id.displayName" . }}
+        display_name: {{ include "siros-id.displayName" . | quote }}
         {{- if .Values.walletBackend.oidcGate }}
         oidc_gate: {{- toYamlPretty .Values.walletBackend.oidcGate | nindent 10 }}
         {{- end }}
@@ -353,11 +354,9 @@ data:
             {{- end }}
           {{- end }}
         verifiers:
-          - name: {{ include "siros-id.displayName" . }}
-            url: https://{{ include "siros-id.hostname.verifier" . }}
-          {{- range .Values.features.extraVerifiers }}
+          {{- range $verifiers }}
           - name: {{ .displayName | quote }}
-            url: {{ .url }}
+            url: {{ .url | quote }}
           {{- end }}
       {{- with .Values.walletBackend.extraTenants }}
       {{- toYamlPretty . | nindent 8 }}

@@ -268,7 +268,7 @@ data:
         mdoc_iacas_uri: https://{{ $hostnameIssuer }}/iacas
         display:
           - locale: en-US
-            name: {{ include "siros-id.displayName" . }}
+            name: {{ include "siros-id.displayName" . | quote }}
             logo:
               uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
               alt_text: Logotype for issuer
@@ -338,7 +338,7 @@ data:
           issuer_url: https://{{ $hostnameIssuer }}
           wallets:
             local:
-              label: {{ include "siros-id.displayName" . }}
+              label: {{ include "siros-id.displayName" . | quote }}
               redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
             {{- range .Values.features.extraWallets }}
             {{ .url | urlquery | quote }}:

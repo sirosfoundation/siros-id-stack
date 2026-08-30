@@ -1,3 +1,4 @@
+{{- if .Values.verifier.enabled -}}
 {{- $ns := include "siros-id.namespace" . -}}
 {{- $hostnameVerifier := include "siros-id.hostname.verifier" . -}}
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
@@ -62,7 +63,7 @@ data:
       trust:
         pdp_url: {{ .Values.pdp.externalUrl | quote }}
       supported_wallets:
-        {{ include "siros-id.displayName" . }}: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
+        {{ include "siros-id.displayName" . | quote }}: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
         {{- range .Values.features.extraWallets }}
         {{ .displayName | quote }}: {{ .url }}/cb
         {{- end }}
@@ -274,3 +275,4 @@ spec:
 
 ---
 {{ include "siros-id.hostnameHttpRoute" (list . (dict "name" "verifier" "hostname" $hostnameVerifier)) }}
+{{- end -}}
