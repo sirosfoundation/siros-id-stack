@@ -5,6 +5,274 @@
 {{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
 {{- $assertionCredentials := include "siros-id.vc.credentialTypesBySource" (list . "assertion") | fromYaml -}}
 {{- $datastoreCredentials := include "siros-id.vc.credentialTypesBySource" (list . "datastore") | fromYaml -}}
+
+{{/*
+The three issuance-side services' config.yaml bodies (vc's model.Cfg: common
+plus registry / apigw / issuer respectively). Each is a named template so
+siros-id.vc.renderConfig can deep-merge the matching extraConfig over it - see
+that helper for the merge semantics.
+
+These are three separate services sharing one config schema, not one service:
+issuer-apigw is the public OpenID4VCI face, issuer-core is an internal gRPC
+signing service wallets never reach, and issuer-registry holds the token
+status lists. That is why issuer-core's issuer_url points at the APIGW's
+hostname rather than its own - the apigw's URL is the credential issuer
+identity that ends up in the `iss` claim, and it is what a PDP whitelist must
+name.
+*/}}
+{{- define "siros-id.issuerRegistry.config" -}}
+{{- $hostnameIssuerRegistry := include "siros-id.hostname.issuerRegistry" . -}}
+common:
+  {{- include "siros-id.vc.config.mongo" (list . "vc_registry") | nindent 2 }}
+  secret_file_path: /secrets-rendered/secrets.yaml
+  production: {{ .Values.features.production }}
+  ha:
+    enable: true
+    cache_database_name: issuer-registry_cache
+  {{- include "siros-id.vc.config.tracing" . | nindent 2 }}
+registry:
+  public_url: https://{{ $hostnameIssuerRegistry }}
+  api_server:
+    addr: ":8080"
+  grpc_server:
+    addr: ":8090"
+    tls:
+      enable: true
+      cert_file_path: /server-cert/tls.crt
+      key_file_path: /server-cert/tls.key
+      client_ca_path: /server-cert/ca.crt
+      allowed_client_dns:
+        issuer-apigw: CN=issuer-apigw-client,OU=clients,O=siros-id
+        issuer-core: CN=issuer-core-client,OU=clients,O=siros-id
+  token_status_lists:
+    key_config:
+      private_key_path: /sign-cert/tls.key
+      chain_path: /sign-cert-chain/tls.crt
+    section_size: {{ .Values.issuer.registry.sectionSize }}
+    {{- with .Values.issuer.registry.tokenRefreshInterval }}
+    token_refresh_interval: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.issuer.registry.rateLimitRequestsPerMinute }}
+    rate_limit_requests_per_minute: {{ . }}
+    {{- end }}
+  {{- if .Values.issuer.registry.adminGui.enabled }}
+  admin_gui:
+    enable: true
+    username: {{ .Values.issuer.registry.adminGui.username | quote }}
+  {{- end }}
+{{- end -}}
+
+{{- define "siros-id.issuerApigw.config" -}}
+{{- $hostnameIssuer := include "siros-id.hostname.issuer" . -}}
+{{- $hostnameIssuerRegistry := include "siros-id.hostname.issuerRegistry" . -}}
+{{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
+{{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
+{{- $assertionCredentials := include "siros-id.vc.credentialTypesBySource" (list . "assertion") | fromYaml -}}
+{{- $datastoreCredentials := include "siros-id.vc.credentialTypesBySource" (list . "datastore") | fromYaml -}}
+common:
+  {{- include "siros-id.vc.config.mongo" (list . "vc") | nindent 2 }}
+  secret_file_path: /secrets-rendered/secrets.yaml
+  production: {{ .Values.features.production }}
+  ha:
+    enable: true
+    cache_database_name: issuer-apigw_cache
+  {{- include "siros-id.vc.config.tracing" . | nindent 2 }}
+  branding:
+    favicon_path: /branding-assets/favicon.png
+    logo_path: /branding-assets/logo.png
+  credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 4 }}
+apigw:
+  public_url: https://{{ $hostnameIssuer }}
+  api_server:
+    addr: ":8080"
+    cors:
+      {{- $origins := list (printf "https://%s" $hostnameWalletFrontend) }}
+      {{- range .Values.features.extraWallets }}
+      {{- $origins = append $origins (include "siros-id.originFromUrl" .url) }}
+      {{- end }}
+      {{- range .Values.issuer.apigw.cors.extraAllowedOrigins }}
+      {{- $origins = append $origins . }}
+      {{- end }}
+      {{/* uniq: an extraAllowedOrigins entry can legitimately repeat the
+           derived frontend origin - e.g. a local stack whose frontend IS
+           http://localhost:3000 - and a duplicated Access-Control-Allow-Origin
+           entry is just noise. */}}
+      allowed_origins: {{- toYamlPretty (uniq $origins) | nindent 8 }}
+      {{- with .Values.issuer.apigw.cors.allowedMethods }}
+      allowed_methods: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.issuer.apigw.cors.allowedHeaders }}
+      allowed_headers: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
+    trust_proxy_tls: true
+    {{- include "siros-id.vc.config.apiAuth" . | nindent 4 }}
+  key_config:
+    private_key_path: /sign-cert/tls.key
+    chain_path: /sign-cert-chain/tls.crt
+  trust:
+    pdp_url: {{ .Values.pdp.externalUrl | quote }}
+    {{- if .Values.issuer.apigw.walletAttestation.enabled }}
+    wallet_attestation: {{- include "siros-id.vc.config.walletAttestation" .Values.issuer.apigw.walletAttestation | nindent 6 }}
+    {{- end }}
+  registry_public_url: https://{{ $hostnameIssuerRegistry }}
+  issuer_client: {{- include "siros-id.vc.config.grpcClient" "issuer-core" | nindent 4 }}
+  registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 4 }}
+  issuer_metadata:
+    display:
+      - locale: en-US
+        name: {{ include "siros-id.displayName" . }}
+        logo:
+          uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
+          alt_text: Logotype for issuer
+  {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
+  identity_mapping_import:
+    file_paths:
+      {{- range $key, $value := .Values.issuer.identitymappingImport.identities }}
+      - /documents/{{ $key }}.json
+      {{- end }}
+    {{- with .Values.issuer.identitymappingImport.users }}
+    users: {{- toYamlPretty . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  data_sources:
+    {{- if $assertionCredentials }}
+    assertion:
+      scopes: {{- range $id, $data := $assertionCredentials }}
+        {{ $id | quote }}:
+          auth_provider: {{ $data.issuance.authProvider | quote }}
+      {{- end }}
+    {{- end }}
+    {{- if (or .Values.issuer.datastoreImport.documents $datastoreCredentials) }}
+    datastore:
+      {{- if .Values.issuer.datastoreImport.documents }}
+      import:
+        file_paths:
+          {{- range $key, $value := .Values.issuer.datastoreImport.documents }}
+          - /documents/{{ $key }}.json
+          {{- end }}
+        {{- with .Values.issuer.datastoreImport.users }}
+        users: {{- toYamlPretty . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- with $datastoreCredentials }}
+      scopes:
+        {{- range $id, $data := . }}
+        {{ $id | quote }}:
+          auth_provider: {{ $data.issuance.authProvider | quote }}
+          {{- if eq $data.issuance.authProvider "oidc" }}
+          auth_claims: {{- $data.issuance.authOptions.claims | toYamlPretty | nindent 12 }}
+          {{- else if eq $data.issuance.authProvider "openid4vp" }}
+          auth_scopes:
+            {{- range $scopeid, $scope := $data.issuance.authOptions.scopes }}
+            {{ $scopeid | quote }}:
+              auth_claims: {{- $scope.claims | toYamlPretty | nindent 16 }}
+            {{- end }}
+          {{- end }}
+        {{- end -}}
+      {{- end }}
+    {{- end }}
+  {{- if .Values.issuer.authProviders.oidc.enabled }}
+  auth_providers:
+    oidc:
+      {{- with .Values.issuer.authProviders.oidc }}
+      enable: true
+      issuer_url: {{ .issuerUrl | quote }}
+      redirect_uri: https://{{ $hostnameIssuer }}/oidcrp/callback
+      scopes: {{- toYamlPretty .scopes | nindent 8 }}
+      {{- with .sessionDuration }}
+      session_duration: {{ . }}
+      {{- end }}
+      registration:
+        preconfigured:
+          enable: true
+          client_id: {{ .clientId | quote }}
+      {{- end }}
+  {{- end }}
+  delivery:
+    credential_offers:
+      issuer_url: https://{{ $hostnameIssuer }}
+      wallets:
+        local:
+          label: {{ include "siros-id.displayName" . }}
+          redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
+        {{- range .Values.features.extraWallets }}
+        {{ .url | urlquery | quote }}:
+          label: {{ .displayName }}
+          redirect_uri: {{ .url }}/cb
+        {{- end }}
+    openid4vci:
+      token_endpoint: https://{{ $hostnameIssuer }}/token
+      {{- with .Values.issuer.apigw.openid4vci.grantTypes }}
+      grant_types: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.issuer.apigw.openid4vci.refreshTokenDuration }}
+      refresh_token_duration: {{ . }}
+      {{- end }}
+      clients:
+        "https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/":
+          type: public
+          redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
+          scopes: {{- include "siros-id.vc.credentialScopes" $ | nindent 12 }}
+        {{- range .Values.features.extraWallets }}
+        {{ .url | quote }}:
+          type: public
+          redirect_uri: {{ .url }}/cb
+          scopes: {{- include "siros-id.vc.credentialScopes" $ | nindent 12 }}
+        {{- end }}
+{{- end -}}
+
+{{- define "siros-id.issuerCore.config" -}}
+{{- $hostnameIssuer := include "siros-id.hostname.issuer" . -}}
+common:
+  {{- /* ha.enable below makes common.mongo.uri mandatory - vc's
+         mongo_uri_required validator requires it whenever HA caching is on,
+         since HA has no relational backend. Without this the issuer-core
+         config fails validation at startup. */}}
+  {{- include "siros-id.vc.config.mongo" (list . "vc_issuer") | nindent 2 }}
+  production: {{ .Values.features.production }}
+  ha:
+    enable: true
+    cache_database_name: issuer-core_cache
+  {{- include "siros-id.vc.config.tracing" . | nindent 2 }}
+  credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 4 }}
+issuer:
+  api_server:
+    addr: ":8081"
+  grpc_server:
+    addr: ":8090"
+    tls:
+      enable: true
+      cert_file_path: /server-cert/tls.crt
+      key_file_path: /server-cert/tls.key
+      client_ca_path: /server-cert/ca.crt
+      allowed_client_dns:
+        issuer-apigw: CN=issuer-apigw-client,OU=clients,O=siros-id
+  key_config:
+    private_key_path: /sign-cert/tls.key
+    chain_path: /sign-cert-chain/tls.crt
+  issuer_url: https://{{ $hostnameIssuer }}
+  jwt_attribute:
+    issuer: https://{{ $hostnameIssuer }}
+    verifiable_credential_type: https://{{ $hostnameIssuer }}/credential-type
+    {{- if not (kindIs "invalid" .Values.issuer.core.jwtAttribute.enableNotBefore) }}
+    enable_not_before: {{ .Values.issuer.core.jwtAttribute.enableNotBefore }}
+    {{- end }}
+    {{- with .Values.issuer.core.jwtAttribute.validDuration }}
+    valid_duration: {{ . }}
+    {{- end }}
+  registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 4 }}
+  mdoc:
+    certificate_chain_path: /sign-cert-chain/tls.crt
+    {{- with .Values.issuer.core.mdoc.defaultValidity }}
+    default_validity: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.issuer.core.mdoc.digestAlgorithm }}
+    digest_algorithm: {{ . | quote }}
+    {{- end }}
+  {{- if not (kindIs "invalid" .Values.issuer.core.pseudonymSeed) }}
+  pseudonym_seed: {{ .Values.issuer.core.pseudonymSeed }}
+  {{- end }}
+{{- end -}}
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "issuer-registry-client" "ou" "clients" "usages" (list "digital signature" "client auth") "dnsNames" (list "issuer-registry"))) }}
@@ -27,34 +295,7 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  config.yaml: |
-    common:
-      {{- include "siros-id.vc.config.mongo" (list . "vc_registry") | nindent 6 }}
-      secret_file_path: /secrets-rendered/secrets.yaml
-      production: {{ .Values.features.production }}
-      ha:
-        enable: true
-        cache_database_name: issuer-registry_cache 
-      {{- include "siros-id.vc.config.tracing" . | nindent 6 }}
-    registry:
-      public_url: https://{{ $hostnameIssuerRegistry }}
-      api_server:
-        addr: ":8080"
-      grpc_server:
-        addr: ":8090"
-        tls:
-          enable: true
-          cert_file_path: /server-cert/tls.crt
-          key_file_path: /server-cert/tls.key
-          client_ca_path: /server-cert/ca.crt
-          allowed_client_dns:
-            issuer-apigw: CN=issuer-apigw-client,OU=clients,O=siros-id
-            issuer-core: CN=issuer-core-client,OU=clients,O=siros-id
-      token_status_lists:
-        key_config:
-          private_key_path: /sign-cert/tls.key
-          chain_path: /sign-cert-chain/tls.crt
-        section_size: {{ .Values.issuer.registry.sectionSize }}
+  config.yaml: | {{- include "siros-id.vc.renderConfig" (list . "siros-id.issuerRegistry.config" .Values.issuer.registry.extraConfig) | nindent 4 }}
   secrets.yaml.template: |
     registry:
       admin_gui:
@@ -231,132 +472,7 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  config.yaml: |
-    common:
-      {{- include "siros-id.vc.config.mongo" (list . "vc") | nindent 6 }}
-      secret_file_path: /secrets-rendered/secrets.yaml
-      production: {{ .Values.features.production }}
-      ha:
-        enable: true
-        cache_database_name: issuer-apigw_cache 
-      {{- include "siros-id.vc.config.tracing" . | nindent 6 }}
-      branding:
-        favicon_path: /branding-assets/favicon.png
-        logo_path: /branding-assets/logo.png
-      credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 8 }}
-    apigw:
-      public_url: https://{{ $hostnameIssuer }}
-      api_server:
-        addr: ":8080"
-        cors:
-          allowed_origins:
-            - https://{{ $hostnameWalletFrontend }}
-            {{- range .Values.features.extraWallets }}
-            - {{ include "siros-id.originFromUrl" .url }}
-            {{- end }}
-        trust_proxy_tls: true
-        {{- include "siros-id.vc.config.apiAuth" . | nindent 8 }}
-      key_config:
-        private_key_path: /sign-cert/tls.key
-        chain_path: /sign-cert-chain/tls.crt
-      trust:
-        pdp_url: {{ .Values.pdp.externalUrl | quote }}
-      registry_public_url: https://{{ $hostnameIssuerRegistry }}
-      issuer_client: {{- include "siros-id.vc.config.grpcClient" "issuer-core" | nindent 8 }}
-      registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 8 }}
-      issuer_metadata:
-        display:
-          - locale: en-US
-            name: {{ include "siros-id.displayName" . }}
-            logo:
-              uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
-              alt_text: Logotype for issuer
-      {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
-      identity_mapping_import:
-        file_paths:
-          {{- range $key, $value := .Values.issuer.identitymappingImport.identities }}
-          - /documents/{{ $key }}.json
-          {{- end }}
-        {{- with .Values.issuer.identitymappingImport.users }}
-        users: {{- toYamlPretty . | nindent 10 }}
-        {{- end }}
-      {{- end }}
-      data_sources:
-        {{- if $assertionCredentials }}
-        assertion:
-          scopes: {{- range $id, $data := $assertionCredentials }}
-            {{ $id | quote }}:
-              auth_provider: {{ $data.issuance.authProvider | quote }}
-          {{- end }}
-        {{- end }}
-        {{- if (or .Values.issuer.datastoreImport.documents $datastoreCredentials) }}
-        datastore:
-          {{- if .Values.issuer.datastoreImport.documents }}
-          import:
-            file_paths:
-              {{- range $key, $value := .Values.issuer.datastoreImport.documents }}
-              - /documents/{{ $key }}.json
-              {{- end }}
-            {{- with .Values.issuer.datastoreImport.users }}
-            users: {{- toYamlPretty . | nindent 14 }}
-            {{- end }}
-          {{- end }}
-          {{- with $datastoreCredentials }}
-          scopes:
-            {{- range $id, $data := . }}
-            {{ $id | quote }}:
-              auth_provider: {{ $data.issuance.authProvider | quote }}
-              {{- if eq $data.issuance.authProvider "oidc" }}
-              auth_claims: {{- $data.issuance.authOptions.claims | toYamlPretty | nindent 16 }}
-              {{- else if eq $data.issuance.authProvider "openid4vp" }}
-              auth_scopes:
-                {{- range $scopeid, $scope := $data.issuance.authOptions.scopes }}
-                {{ $scopeid | quote }}:
-                  auth_claims: {{- $scope.claims | toYamlPretty | nindent 20 }}
-                {{- end }}
-              {{- end }}
-            {{- end -}}
-          {{- end }}
-        {{- end }}
-      {{- if .Values.issuer.authProviders.oidc.enabled }}
-      auth_providers:
-        oidc:
-          {{- with .Values.issuer.authProviders.oidc }}
-          enable: true
-          issuer_url: {{ .issuerUrl | quote }}
-          redirect_uri: https://{{ $hostnameIssuer }}/oidcrp/callback
-          scopes: {{- toYamlPretty .scopes | nindent 12 }}
-          registration:
-            preconfigured:
-              enable: true
-              client_id: {{ .clientId | quote }}
-          {{- end }}
-      {{- end }}
-      delivery:
-        credential_offers:
-          issuer_url: https://{{ $hostnameIssuer }}
-          wallets:
-            local:
-              label: {{ include "siros-id.displayName" . }}
-              redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
-            {{- range .Values.features.extraWallets }}
-            {{ .url | urlquery | quote }}:
-              label: {{ .displayName }}
-              redirect_uri: {{ .url }}/cb
-            {{- end }}
-        openid4vci:
-          token_endpoint: https://{{ $hostnameIssuer }}/token
-          clients:
-            "https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/":
-              type: public
-              redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
-              scopes: {{- include "siros-id.vc.credentialScopes" $ | nindent 16 }}
-            {{- range .Values.features.extraWallets }}
-            {{ .url | quote }}:
-              type: public
-              redirect_uri: {{ .url }}/cb
-              scopes: {{- include "siros-id.vc.credentialScopes" $ | nindent 16 }}
-            {{- end }}
+  config.yaml: | {{- include "siros-id.vc.renderConfig" (list . "siros-id.issuerApigw.config" .Values.issuer.apigw.extraConfig) | nindent 4 }}
   {{- with .Values.issuer.apiAuth.jwks.jwksData }}
   api_auth_jwks.json: {{ . | quote }}
   {{- end }}
@@ -566,35 +682,7 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  config.yaml: |
-    common:
-      production: {{ .Values.features.production }}
-      ha:
-        enable: true
-      {{- include "siros-id.vc.config.tracing" . | nindent 6 }}
-      credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 8 }}
-    issuer:
-      api_server:
-        addr: ":8081"
-      grpc_server:
-        addr: ":8090"
-        tls:
-          enable: true
-          cert_file_path: /server-cert/tls.crt
-          key_file_path: /server-cert/tls.key
-          client_ca_path: /server-cert/ca.crt
-          allowed_client_dns:
-            issuer-apigw: CN=issuer-apigw-client,OU=clients,O=siros-id
-      key_config:
-        private_key_path: /sign-cert/tls.key
-        chain_path: /sign-cert-chain/tls.crt
-      issuer_url: https://{{ $hostnameIssuer }}
-      jwt_attribute:
-        issuer: https://{{ $hostnameIssuer }}
-        verifiable_credential_type: https://{{ $hostnameIssuer }}/credential-type
-      registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 8 }}
-      mdoc:
-        certificate_chain_path: /sign-cert-chain/tls.crt
+  config.yaml: | {{- include "siros-id.vc.renderConfig" (list . "siros-id.issuerCore.config" .Values.issuer.core.extraConfig) | nindent 4 }}
 
 ---
 apiVersion: apps/v1
