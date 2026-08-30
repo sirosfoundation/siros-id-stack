@@ -86,11 +86,18 @@ apigw:
   api_server:
     addr: ":8080"
     cors:
-      allowed_origins:
-        - https://{{ $hostnameWalletFrontend }}
-        {{- range .Values.features.extraWallets }}
-        - {{ include "siros-id.originFromUrl" .url }}
-        {{- end }}
+      {{- $origins := list (printf "https://%s" $hostnameWalletFrontend) }}
+      {{- range .Values.features.extraWallets }}
+      {{- $origins = append $origins (include "siros-id.originFromUrl" .url) }}
+      {{- end }}
+      {{- range .Values.issuer.apigw.cors.extraAllowedOrigins }}
+      {{- $origins = append $origins . }}
+      {{- end }}
+      {{/* uniq: an extraAllowedOrigins entry can legitimately repeat the
+           derived frontend origin - e.g. a local stack whose frontend IS
+           http://localhost:3000 - and a duplicated Access-Control-Allow-Origin
+           entry is just noise. */}}
+      allowed_origins: {{- toYamlPretty (uniq $origins) | nindent 8 }}
       {{- with .Values.issuer.apigw.cors.allowedMethods }}
       allowed_methods: {{- toYamlPretty . | nindent 8 }}
       {{- end }}
@@ -217,9 +224,15 @@ apigw:
 {{- define "siros-id.issuerCore.config" -}}
 {{- $hostnameIssuer := include "siros-id.hostname.issuer" . -}}
 common:
+  {{- /* ha.enable below makes common.mongo.uri mandatory - vc's
+         mongo_uri_required validator requires it whenever HA caching is on,
+         since HA has no relational backend. Without this the issuer-core
+         config fails validation at startup. */}}
+  {{- include "siros-id.vc.config.mongo" (list . "vc_issuer") | nindent 2 }}
   production: {{ .Values.features.production }}
   ha:
     enable: true
+    cache_database_name: issuer-core_cache
   {{- include "siros-id.vc.config.tracing" . | nindent 2 }}
   credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 4 }}
 issuer:

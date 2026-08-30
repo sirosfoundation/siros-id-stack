@@ -175,8 +175,14 @@ issuer:
   apigw:
     cors:
       # allowed_origins is derived from the wallet frontend plus
-      # features.extraWallets; these two are only needed if a client sends
-      # methods/headers outside vc's own defaults.
+      # features.extraWallets; these are appended to that, for origins that
+      # are not a wallet - a separate admin UI, or a developer's own host.
+      # Appending rather than replacing matters: the derived entry follows
+      # the frontend hostname, so replacing the list silently breaks CORS
+      # for any deployment whose frontend is not where you expected.
+      extraAllowedOrigins: []
+      # Only needed if a client sends methods/headers outside vc's own
+      # defaults.
       allowedMethods: []
       allowedHeaders: []
     openid4vci:
