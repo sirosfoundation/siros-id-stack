@@ -154,6 +154,13 @@ issuer:
     # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
     # and affect risk of information leakage.
     sectionSize: 1000000
+  signCertPath: "/sign-cert-chain/tls.crt"
+  extraCerts: {}
+    # extra certs to be specified as sign-certs
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
 
 verifier:
   enabled: true
@@ -185,6 +192,13 @@ verifier:
   #       "*": "*"
   presentationRequestTemplates: {}
   presets: {}
+  signCertPath: "/sign-cert-chain/tls.crt"
+  extraCerts: {}
+    # extra certs to be specified as sign-certs
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
 
 walletBackend:
   # oidcGate uses the following redirectURI: https://<frontend-url>/id/<tenant-id>/oidc/cb
