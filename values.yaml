@@ -210,6 +210,36 @@ issuer:
     # Attach a random pseudonym_seed claim, for ZK pairwise-pseudonym
     # derivation. Unset leaves it out of the config entirely.
     pseudonymSeed: ~
+    # Blind BBS issuance - the "jwp" credential format.
+    #
+    # Disabled leaves the `bbs:` section out of the issuer config entirely,
+    # which is what turns the format off. Keep it a flag rather than
+    # inferring from the keys below: an issuer image built without
+    # `-tags bbsnative` REFUSES TO START when this section is present, so a
+    # deployment rolling onto such an image needs a way to switch the
+    # feature off without deleting its key configuration.
+    bbs:
+      enabled: false
+      # The issuer's key pair.
+      #
+      # Not key_config above, and not cert-manager: a BBS secret key is a
+      # BLS12-381 scalar consumed inside the signing algebra rather than a
+      # key that signs a digest, so no PKCS#11 HSM can hold one and no CA
+      # can issue one. Generate the pair with zk-cred-bbs's `bbs-keygen`.
+      #
+      # The public half is not secret and belongs here. The secret half
+      # does NOT: it comes from the issuer-core-main Secret via the
+      # secrets renderer (see secrets.issuerCoreMain below), so it never
+      # appears in the rendered ConfigMap.
+      publicKey: ""
+      # For a deployment that can mount the key material as files instead.
+      # Set at most one of publicKey/publicKeyPath, and if secretKeyPath is
+      # set the Secret and its renderer are not used at all.
+      publicKeyPath: ""
+      secretKeyPath: ""
+      # How long an issued credential is valid for. Unset uses vc's default
+      # (8760h).
+      defaultValidity: ""
     extraConfig: {}
   registry:
     # From the registry documentation: "SectionSize is the number of entries (decoys) per section."
@@ -626,6 +656,17 @@ secrets:
     name: issuer-registry-main
     properties:
       - adminGuiPassword
+  issuerCoreMain:
+    name: issuer-core-main
+    properties:
+      # Like mongoBackupMain below, and for the same reason: this one is
+      # NOT produced by the secret generator. A BBS secret key has to be
+      # the real scalar matching issuer.core.bbs.publicKey, and a random
+      # 32 bytes is a perfectly well-formed scalar that is not it - the
+      # issuer would start, sign, and produce credentials nothing can
+      # verify. Create the issuer-core-main Secret yourself when enabling
+      # issuer.core.bbs, or use issuer.core.bbs.secretKeyPath instead.
+      - bbsSecretKey
   issuerApigwMain:
     name: issuer-apigw-main
     properties:
