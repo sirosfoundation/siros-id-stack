@@ -5,6 +5,10 @@
 {{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
 ---
 {{ include "siros-id.certificate" (list . (dict 
+  "name" "wallet-backend-provider" "ou" "clients" "usages" (list "digital signature" "content commitment"))) }}
+
+---
+{{ include "siros-id.certificate" (list . (dict 
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
 
 ---
@@ -90,6 +94,17 @@ data:
         database: wallet-backend
     jwt:
       secret_path: /main-secrets/jwtSecret
+    wallet_provider:
+      private_key_path: /provider-cert/tls.key
+      certificate_path: /provider-cert/tls.crt
+      ca_cert_path: /provider-cert/ca.crt
+      wia:
+        enabled: true
+        wallet_provider_uri: https://{{ include "siros-id.hostname.walletBackend" . }}
+        wallet_version: 1.0.0
+        attestation:
+          fido2_attestation:
+            enabled: true
   registry.yaml: |-
     logging:
       level: debug
@@ -149,6 +164,9 @@ spec:
         - name: client-cert
           secret:
             secretName: wallet-backend-client-cert
+        - name: provider-cert
+          secret:
+            secretName: wallet-backend-provider-cert
         - name: as-cert
           secret:
             secretName: wallet-backend-as-cert
@@ -182,6 +200,9 @@ spec:
               readOnly: true
             - name: client-cert
               mountPath: /client-cert
+              readOnly: true
+            - name: provider-cert
+              mountPath: /provider-cert
               readOnly: true
             - name: as-cert
               mountPath: /as-cert
