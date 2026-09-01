@@ -572,7 +572,29 @@ api_auth:
     .Values.features.extraVerifiers
   | toYamlPretty
 -}}
-{{- else -}}
+{{- else if .Values.features.extraVerifiers -}}
 {{- .Values.features.extraVerifiers | toYamlPretty -}}
+{{- else -}}
+{{- fail "verifier.enabled or features.extraVerifiers is required" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "siros-id.issuers" -}}
+{{- if .Values.issuer.enabled -}}
+{{-
+  concat
+    (list
+      (dict
+        "displayName" (include "siros-id.displayName" .)
+        "url" (printf "https://%s" (include "siros-id.hostname.issuer" .))
+      )
+    )
+    .Values.features.extraIssuers
+  | toYamlPretty
+-}}
+{{- else if .Values.features.extraIssuers -}}
+{{- .Values.features.extraIssuers | toYamlPretty -}}
+{{- else -}}
+{{- fail "issuer.enabled or features.extraIssuers is required" -}}
 {{- end -}}
 {{- end -}}

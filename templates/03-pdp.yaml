@@ -1,5 +1,6 @@
 {{- $ns := include "siros-id.namespace" . -}}
 {{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
+{{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -35,14 +36,12 @@ data:
         lists:
           # TODO: All issuers should not be PID provider, add another toggle for this.
           pid-issuers:
-            - https://{{ include "siros-id.hostname.issuer" . }}
-            {{- range .Values.features.extraIssuers }}
+            {{- range $issuers }}
             - {{ .url }}
             {{- end }}
           verifiers:
             # Issuers are included as verifiers since they may use OpenID4VP to authorize issuance
-            - https://{{ include "siros-id.hostname.issuer" . }}
-            {{- range .Values.features.extraIssuers }}
+            {{- range $issuers }}
             - {{ .url }}
             {{- end }}
             {{- range $verifiers }}
@@ -60,8 +59,7 @@ data:
         cache_ttl: "5m"
         http_timeout: "30s"
         issuer_allowlist:
-          - https://{{ include "siros-id.hostname.issuer" . }}
-          {{- range .Values.features.extraIssuers }}
+          {{- range $issuers }}
           - {{ .url }}
           {{- end }}
       {{- end }}

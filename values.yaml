@@ -117,6 +117,7 @@ pdp:
   extraRegistries: {}
 
 issuer:
+  enabled: true
   # max 1MB in total, use the API if you need more, since the feature is for quick testing.
   # !!! credentials are only added on initialization of the database !!!
   identitymappingImport:

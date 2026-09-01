@@ -2,6 +2,7 @@
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
 {{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
 {{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
+{{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
@@ -341,10 +342,7 @@ data:
         trust_config:
           pdp_url: {{ .Values.pdp.externalUrl | quote }}
         issuers:
-          - credential_issuer_identifier: https://{{ include "siros-id.hostname.issuer" . }}
-            client_id: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/
-            visible: true
-          {{- range .Values.features.extraIssuers }}
+          {{- range $issuers }}
           - credential_issuer_identifier: {{ .url }}
             visible: true
             {{- if (hasKey . "clientId") }}
