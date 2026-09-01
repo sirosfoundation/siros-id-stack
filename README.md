@@ -63,7 +63,7 @@ helm template --values values-demo.yaml --values example-tenant.yaml --output-di
 
 Using the examples above, the routes created for the gateway API will be the following:
 * https://example.localhost/id/example-tenant
-* https://backend.example.localhost (using the header X-Tenant-Id: example-tenant)
+* https://example-tenant.backend.example.localhost
 * https://example-tenant.issuer.example.localhost
 * https://example-tenant.verifier.example.localhost
 

@@ -294,32 +294,16 @@ spec:
   hostnames:
     - {{ include "siros-id.hostname.walletBackend" . }}
   rules:
-    {{- if .Values.features.singleTenant }}
-    - matches:
-        - method: OPTIONS
-      backendRefs:
-        - name: wallet-backend
-          port: 80
-    {{- end }}
-    - matches:
-        - headers:
-            - type: Exact
-              name: X-Tenant-ID
-              value: {{ .Values.tenant.id | quote }}
-      backendRefs:
-        - name: wallet-backend
-          port: 80
     - matches:
         - path:
             type: Exact
             value: /api/v2/wallet
-          queryParams:
-            - type: Exact
-              name: tenant_id
-              value: {{ .Values.tenant.id | quote }}
       backendRefs:
         - name: wallet-backend
           port: 8082
+    - backendRefs:
+        - name: wallet-backend
+          port: 80
 
 ---
 apiVersion: v1
