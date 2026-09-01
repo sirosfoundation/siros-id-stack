@@ -223,7 +223,16 @@ apigw:
 
 {{- define "siros-id.issuerCore.config" -}}
 {{- $hostnameIssuer := include "siros-id.hostname.issuer" . -}}
+{{- $bbs := .Values.issuer.core.bbs -}}
+{{- /* The secret key comes from the issuer-core-main Secret through the
+       secrets renderer, unless the deployment mounts it as a file itself.
+       Only then does issuer-core need a secrets.yaml at all - every other
+       part of its config is public. */}}
+{{- $bbsRenderedSecret := and $bbs.enabled (not $bbs.secretKeyPath) -}}
 common:
+  {{- if $bbsRenderedSecret }}
+  secret_file_path: /secrets-rendered/secrets.yaml
+  {{- end }}
   {{- /* ha.enable below makes common.mongo.uri mandatory - vc's
          mongo_uri_required validator requires it whenever HA caching is on,
          since HA has no relational backend. Without this the issuer-core
@@ -271,6 +280,25 @@ issuer:
     {{- end }}
   {{- if not (kindIs "invalid" .Values.issuer.core.pseudonymSeed) }}
   pseudonym_seed: {{ .Values.issuer.core.pseudonymSeed }}
+  {{- end }}
+  {{- if $bbs.enabled }}
+  {{- /* Present at all only when enabled: an issuer image built without
+         `-tags bbsnative` refuses to START when it sees this section, which
+         is deliberate - it is the difference between a deploy that fails
+         visibly and one that serves `format: jwp` requests into a signer
+         that cannot sign. */}}
+  bbs:
+    {{- with $bbs.publicKeyPath }}
+    public_key_path: {{ . | quote }}
+    {{- else }}
+    public_key: {{ required "issuer.core.bbs.publicKey or publicKeyPath is required when bbs is enabled" $bbs.publicKey | quote }}
+    {{- end }}
+    {{- with $bbs.secretKeyPath }}
+    secret_key_path: {{ . | quote }}
+    {{- end }}
+    {{- with $bbs.defaultValidity }}
+    default_validity: {{ . | quote }}
+    {{- end }}
   {{- end }}
 {{- end -}}
 ---
@@ -683,6 +711,14 @@ metadata:
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
   config.yaml: | {{- include "siros-id.vc.renderConfig" (list . "siros-id.issuerCore.config" .Values.issuer.core.extraConfig) | nindent 4 }}
+  {{- if and .Values.issuer.core.bbs.enabled (not .Values.issuer.core.bbs.secretKeyPath) }}
+  {{- /* The one secret issuer-core has. Kept out of config.yaml so the
+         issuer's BBS signing key is never in a ConfigMap. */}}
+  secrets.yaml.template: |
+    issuer:
+      bbs:
+        secret_key: ${BBS_SECRET_KEY}
+  {{- end }}
 
 ---
 apiVersion: apps/v1
@@ -727,8 +763,18 @@ spec:
         - name: client-cert
           secret:
             secretName: issuer-core-client-cert
+        {{- if and .Values.issuer.core.bbs.enabled (not .Values.issuer.core.bbs.secretKeyPath) }}
+        - name: secrets-rendered
+          emptyDir:
+            medium: Memory
+        {{- end }}
       initContainers:
         {{- include "siros-id.certChainGenInitContainer" . | nindent 8 }}
+        {{- if and .Values.issuer.core.bbs.enabled (not .Values.issuer.core.bbs.secretKeyPath) }}
+        {{- include "siros-id.secretsRendererInitContainer" (list . (dict
+          "secretName" .Values.secrets.issuerCoreMain.name
+          "envs" (dict "BBS_SECRET_KEY" "bbsSecretKey"))) | nindent 8 }}
+        {{- end }}
       containers:
         - name: main
           image: {{ .Values.images.issuerCore | quote }}
@@ -747,6 +793,11 @@ spec:
             - name: main-config
               mountPath: /main-config
               readOnly: true
+            {{- if and .Values.issuer.core.bbs.enabled (not .Values.issuer.core.bbs.secretKeyPath) }}
+            - name: secrets-rendered
+              mountPath: /secrets-rendered
+              readOnly: true
+            {{- end }}
             - name: vctms
               mountPath: /vctms
               readOnly: true
