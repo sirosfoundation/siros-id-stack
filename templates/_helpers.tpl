@@ -20,7 +20,7 @@ Define the hostnames for the tenant
 {{- .Values.hostnames.verifier | default (printf "%s.verifier.%s" .Values.tenant.id .Values.domain.root) -}}
 {{- end -}}
 {{- define "siros-id.hostname.walletBackend" -}}
-{{- .Values.hostnames.walletBackend | default (printf "%s.backend.%s" .Values.tenant.id .Values.domain.root) -}}
+{{- .Values.hostnames.walletBackend | default (printf "%s.wallet-backend.%s" .Values.tenant.id .Values.domain.root) -}}
 {{- end -}}
 {{- define "siros-id.hostname.walletFrontend" -}}
 {{- .Values.hostnames.walletFrontend | default (.Values.domain.root) -}}
