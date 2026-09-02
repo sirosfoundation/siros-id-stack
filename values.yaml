@@ -224,6 +224,15 @@ issuer:
       enabled: false
       username: "admin"
     extraConfig: {}
+  signCertPath: "/sign-cert-chain/tls.crt"
+  extraCerts: {}
+    # extra certs to be specified as sign-certs
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+
+
 verifier:
   oidc_provider:
     enabled: true
@@ -323,6 +332,13 @@ verifier:
   #       "*": "*"
   presentationRequestTemplates: {}
   presets: {}
+  signCertPath: "/sign-cert-chain/tls.crt"
+  extraCerts: {}
+    # extra certs to be specified as sign-certs
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
 
 walletBackend:
   # Deep-merged over the rendered backend.yaml / registry.yaml; see

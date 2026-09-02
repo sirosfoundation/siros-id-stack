@@ -168,6 +168,20 @@ data:
           subject_salt: ${OIDC_PROVIDER_SUBJECT_SALT}
 
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verifier-sign-extra-certs
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  .empty: "I am here so that the configmap won't ever be empty"
+  {{- range $key, $value := $.Values.verifier.extraCerts }}
+  {{ $key }}: | {{- $value | nindent 4 }}
+  {{- end }}
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -211,6 +225,9 @@ spec:
         - name: sign-cert
           secret:
             secretName: verifier-sign-cert
+        - name: sign-extra-certs
+          configMap:
+            name: verifier-sign-extra-certs
         - name: sign-cert-chain
           emptyDir: {}
         - name: branding
@@ -280,6 +297,9 @@ spec:
               readOnly: true
             - name: client-cert
               mountPath: /client-cert
+              readOnly: true
+            - name: sign-extra-certs
+              mountPath: /sign-extra-certs
               readOnly: true
 
 ---

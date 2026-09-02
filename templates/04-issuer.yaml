@@ -677,6 +677,20 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: issuer-sign-extra-certs
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  .empty: "I am here so that the configmap won't ever be empty"
+  {{- range $key, $value := $.Values.issuer.extraCerts }}
+  {{ $key }}: | {{- $value | nindent 4 }}
+  {{- end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: issuer-core-main
   namespace: {{ $ns }}
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
@@ -727,6 +741,9 @@ spec:
         - name: client-cert
           secret:
             secretName: issuer-core-client-cert
+        - name: sign-extra-certs
+          configMap:
+            name: issuer-sign-extra-certs
       initContainers:
         {{- include "siros-id.certChainGenInitContainer" . | nindent 8 }}
       containers:
@@ -761,6 +778,9 @@ spec:
               readOnly: true
             - name: client-cert
               mountPath: /client-cert
+              readOnly: true
+            - name: sign-extra-certs
+              mountPath: /sign-extra-certs
               readOnly: true
 
 ---
