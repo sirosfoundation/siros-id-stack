@@ -78,7 +78,42 @@ metadata:
 spec:
   ca:
     secretName: ca-{{ .Values.global.certManager.credentialSigning.issuerRef }}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca-{{ .Values.global.certManager.walletProvider.issuerRef }}
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  literalSubject: CN={{ .Values.global.certManager.walletProvider.issuerRef }},OU=ca,O=siros-id
+  secretName: ca-{{ .Values.global.certManager.walletProvider.issuerRef }}
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Never
+  isCA: true
+  duration: 8760h
+  issuerRef:
+    name: bootstrap
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Values.global.certManager.walletProvider.issuerRef }}
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  ca:
+    secretName: ca-{{ .Values.global.certManager.walletProvider.issuerRef }}
 {{ end }}
+
 ---
 apiVersion: v1
 kind: ConfigMap

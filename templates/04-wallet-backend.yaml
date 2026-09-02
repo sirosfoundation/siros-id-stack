@@ -5,7 +5,8 @@
 {{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
 ---
 {{ include "siros-id.certificate" (list . (dict 
-  "name" "wallet-backend-provider" "ou" "clients" "usages" (list "digital signature" "content commitment"))) }}
+  "name" "wallet-backend-provider" "ou" "signers" "usages" (list "digital signature" "content commitment")
+  "rotationPolicy" "Never" "issuerRef" .Values.global.certManager.walletProvider.issuerRef "duration" "8760h")) }}
 
 ---
 {{ include "siros-id.certificate" (list . (dict 

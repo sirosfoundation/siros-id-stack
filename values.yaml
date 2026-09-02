@@ -19,6 +19,10 @@ global:
       issuerRef: creds
       privateKeyAlgorithm: ECDSA
       privateKeySize: 256
+    walletProvider:
+      issuerRef: wallet-provider
+      privateKeyAlgorithm: ECDSA
+      privateKeySize: 256
 
 tenant:
   # Logical tenant identifier, used in configs and hostnames
