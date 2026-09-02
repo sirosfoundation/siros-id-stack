@@ -328,7 +328,11 @@ data:
         issuers:
           {{- range $issuers }}
           - credential_issuer_identifier: {{ .url }}
+            {{- if (hasKey . "visible") }}
+            visible: {{ .visible }}
+            {{- else }}
             visible: true
+            {{- end }}
             {{- if (hasKey . "clientId") }}
             client_id: {{ .clientId | quote }}
             {{- else }}
@@ -337,8 +341,10 @@ data:
           {{- end }}
         verifiers:
           {{- range $verifiers }}
+          {{- if (or (not ((hasKey . "visible"))) (.visible)) }}
           - name: {{ .displayName | quote }}
             url: {{ .url | quote }}
+          {{- end }}
           {{- end }}
       {{- with .Values.walletBackend.extraTenants }}
       {{- toYamlPretty . | nindent 8 }}

@@ -63,9 +63,13 @@ features:
   #   - displayName: "Foobar Inc. - Secondary"
   #     url: https://issuer-2.example.com
   #     clientId: "not-the-default-frontend-base-url"
+  #     visible: false
   # extraVerifiers:
   #   - displayName: "Foobar Inc."
   #     url: https://verifier.example.com
+  #   - displayName: "Foobar Inc. (test)"
+  #     url: https://verifier.example.com
+  #     visible: false
   extraIssuers: []
   extraVerifiers: []
   # Example configuration for extra wallets (used by verifier and issuer-apigw)
