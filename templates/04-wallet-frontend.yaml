@@ -145,7 +145,7 @@ spec:
                   name: wallet-frontend-main
                   key: rpId
             - name: OPENID4VCI_PROOF_TYPE_PRECEDENCE
-              value: "jwt"
+              value: "attestation,jwt"
             - name: OPENID4VP_SAN_DNS_CHECK
               value: "false"
             - name: OPENID4VP_SAN_DNS_CHECK_SSL_CERTS
