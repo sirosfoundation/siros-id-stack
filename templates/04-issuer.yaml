@@ -118,6 +118,14 @@ apigw:
   issuer_client: {{- include "siros-id.vc.config.grpcClient" "issuer-core" | nindent 4 }}
   registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 4 }}
   issuer_metadata:
+    # Where this issuer publishes the IACA certificates its mdoc document
+    # signer chains to. The APIGW always serves them at /iacas (from
+    # issuer-core's mdoc chain); advertising the endpoint is what lets an
+    # mdoc verifier - and go-trust's mdociaca registry behind the PDP, which
+    # the wallet and vc-verifier both consult - discover the trust anchor
+    # for an mDL from its issuer's metadata instead of denying with "issuer
+    # does not publish mdoc_iacas_uri".
+    mdoc_iacas_uri: https://{{ $hostnameIssuer }}/iacas
     display:
       - locale: en-US
         name: {{ include "siros-id.displayName" . }}
