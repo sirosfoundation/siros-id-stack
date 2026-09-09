@@ -189,7 +189,7 @@ Params:
 - (opt)dnsNames: The DNS names of the certificate (default: [name])
 - (opt)literalSubject: The literal subject (default: CN=<name>,OU=<ou>,O=siros-id)
 - (opt)secretName: The secret name (default: <name>-cert)
-- (opt)issuerRef: The issuer name (default: global.certManager.clientCertificate.issuerRef)
+- (opt)issuer: The issuer configuration object (default: global.certManager.common)
 - (opt)rotationPolicy: The private key rotation policy (default: Always)
 - (opt)duration: The duration of the certificate (default: 2160h)
 - (opt)privateKeyAlgorithm: The private key algorithm (default: ECDSA)
@@ -203,6 +203,7 @@ Params:
 {{ if (and (not $params.literalSubject) (not $params.ou)) -}}
 {{- fail "Certificate OU or literalSubject must be set" -}}
 {{- end -}}
+{{- if (or (not ($params.issuer)) ($params.issuer.enabled)) -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -229,9 +230,14 @@ spec:
     - {{ . | quote }}
     {{- end }}
   issuerRef:
-    name: {{ $params.issuerRef | default ($root.Values.global.certManager.clientCertificate.issuerRef) | quote }}
+    {{- if $params.issuer }}
+    name: {{ $params.issuer.issuerRef }}
+    {{- else }}
+    name: {{ $root.Values.global.certManager.common.issuerRef | quote }}
+    {{- end }}
     kind: Issuer
     group: cert-manager.io
+{{- end -}}
 {{- end -}}
 
 {{/* Generate a podDisruptionBudget template.

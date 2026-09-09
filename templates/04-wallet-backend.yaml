@@ -6,7 +6,7 @@
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "wallet-backend-provider" "ou" "signers" "usages" (list "digital signature" "content commitment")
-  "rotationPolicy" "Never" "issuerRef" .Values.global.certManager.walletProvider.issuerRef "duration" "8760h")) }}
+  "rotationPolicy" "Never" "issuer" .Values.global.certManager.walletProvider "duration" "8760h")) }}
 
 ---
 {{ include "siros-id.certificate" (list . (dict 
@@ -101,6 +101,8 @@ data:
       ca_cert_path: /provider-cert/ca.crt
       wia:
         enabled: true
+        mode: etsi
+        issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
         wallet_provider_uri: https://{{ include "siros-id.hostname.walletBackend" . }}
         wallet_version: 1.0.0
         attestation:

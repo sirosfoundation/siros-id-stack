@@ -13,13 +13,16 @@ global:
   certManager:
     # Use certManager to create issuers used for client certificates and credential signing
     createIssuers: true
-    clientCertificate:
+    common:
+      enabled: true
       issuerRef: common
     credentialSigning:
+      enabled: true
       issuerRef: creds
       privateKeyAlgorithm: ECDSA
       privateKeySize: 256
     walletProvider:
+      enabled: true
       issuerRef: wallet-provider
       privateKeyAlgorithm: ECDSA
       privateKeySize: 256
