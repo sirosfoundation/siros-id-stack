@@ -1,8 +1,118 @@
 {{- $ns := include "siros-id.namespace" . -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+{{- define "siros-id.walletBackend.config.server.main.\"backend.yaml\"" -}}
+{{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
+logging:
+  level: debug
+  format: json
+server:
+  port: 8080
+  engine_port: 8082
+  admin_token_path: /main-secrets/adminToken
+  rp_name: {{ .Values.tenant.id }} Wallet
+  rp_id: {{ $hostnameWalletFrontend }}
+  rp_origins:
+    - {{ include "siros-id.origins.walletFrontend" . }}
+    {{- range .Values.walletBackend.extraRpOrigins }}
+    - {{ . }}
+    {{- end }}
+  base_url: https://{{ include "siros-id.hostname.walletBackend" . }}
+  cors:
+    allowed_origins:
+      - https://{{ $hostnameWalletFrontend }}
+    allow_credentials: true
+as:
+  enabled: true
+  legacy:
+    enabled: false
+  signing_key_path: /as-cert/tls.key
+  rules_dir: /as-rules
+  default_max_tac: rwlid
+  external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
+  issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
+trust:
+  pdp_url: {{ .Values.pdp.externalUrl | quote }}
+  registry_url: https://{{ include "siros-id.hostname.walletBackend" . }}/registry
+storage:
+  type: mongodb
+  mongodb:
+    uri: {{ include "siros-id.mongoUri" (list . "wallet-backend") }}
+    tls_enabled: true
+    ca_path: /client-cert/ca.crt
+    cert_path: /client-cert/tls.crt
+    key_path: /client-cert/tls.key
+    database: wallet-backend
+jwt:
+  secret_path: /main-secrets/jwtSecret
+{{- end -}}
+
+{{- define "siros-id.walletBackend.config.server.main.\"registry.yaml\"" -}}
+logging:
+  level: debug
+  format: json
+server:
+  port: 8080 
+source:
+  url: https://registry.siros.org/.well-known/vctm-registry.json
+  poll_interval: 3m
+  timeout: 30s
+  local_overrides:
+    - /vctms
+cache:
+  path: /cache/vctm-cache.json
+  max_age: 10m
+filter:
+  include_patterns: []
+  exclude_patterns: []
+image_embed:
+  enabled: true
+  max_image_size: 10485760
+jwt:
+  require_auth: false
+{{- end -}}
+
+{{- define "siros-id.walletBackend.config.configJob.main.\"tenant.yaml\"" -}}
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
 {{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
 {{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
 {{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
+tenants:
+  - id: {{ .Values.tenant.id }}
+    name: {{ .Values.tenant.id }}
+    display_name: {{ include "siros-id.displayName" . | quote }}
+    {{- if .Values.walletBackend.oidcGate }}
+    oidc_gate: {{- toYamlPretty .Values.walletBackend.oidcGate | nindent 6 }}
+    {{- end }}
+    require_invite: {{ .Values.features.requireInvite }}
+    trust_config:
+      pdp_url: {{ .Values.pdp.externalUrl | quote }}
+    issuers:
+      {{- range $issuers }}
+      - credential_issuer_identifier: {{ .url }}
+        {{- if (hasKey . "visible") }}
+        visible: {{ .visible }}
+        {{- else }}
+        visible: true
+        {{- end }}
+        {{- if (hasKey . "clientId") }}
+        client_id: {{ .clientId | quote }}
+        {{- else }}
+        client_id: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/
+        {{- end }}
+      {{- end }}
+    verifiers:
+      {{- range $verifiers }}
+      {{- if (or (not ((hasKey . "visible"))) (.visible)) }}
+      - name: {{ .displayName | quote }}
+        url: {{ .url | quote }}
+      {{- end }}
+      {{- end }}
+{{- with .Values.walletBackend.extraTenants }}
+{{- toYamlPretty . | nindent 2 }}
+{{- end }}
+{{- end -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "wallet-backend-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
@@ -47,72 +157,24 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  backend.yaml: |-
-    logging:
-      level: debug
-      format: json
-    server:
-      port: 8080
-      engine_port: 8082
-      admin_token_path: /main-secrets/adminToken
-      rp_name: {{ .Values.tenant.id }} Wallet
-      rp_id: {{ $hostnameWalletFrontend }}
-      rp_origins:
-        - {{ include "siros-id.origins.walletFrontend" . }}
-        {{- range .Values.walletBackend.extraRpOrigins }}
-        - {{ . }}
-        {{- end }}
-      base_url: https://{{ include "siros-id.hostname.walletBackend" . }}
-      cors:
-        allowed_origins:
-          - https://{{ $hostnameWalletFrontend }}
-        allow_credentials: true
-    as:
-      enabled: true
-      legacy:
-        enabled: false
-      signing_key_path: /as-cert/tls.key
-      rules_dir: /as-rules
-      default_max_tac: rwlid
-      external_url: https://{{ include "siros-id.hostname.walletBackend" . }}
-      issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
-    trust:
-      pdp_url: {{ .Values.pdp.externalUrl | quote }}
-      registry_url: https://{{ include "siros-id.hostname.walletBackend" . }}/registry
-    storage:
-      type: mongodb
-      mongodb:
-        uri: {{ include "siros-id.mongoUri" (list . "wallet-backend") }}
-        tls_enabled: true
-        ca_path: /client-cert/ca.crt
-        cert_path: /client-cert/tls.crt
-        key_path: /client-cert/tls.key
-        database: wallet-backend
-    jwt:
-      secret_path: /main-secrets/jwtSecret
-  registry.yaml: |-
-    logging:
-      level: debug
-      format: json
-    server:
-      port: 8080 
-    source:
-      url: https://registry.siros.org/.well-known/vctm-registry.json
-      poll_interval: 3m
-      timeout: 30s
-      local_overrides:
-        - /vctms
-    cache:
-      path: /cache/vctm-cache.json
-      max_age: 10m
-    filter:
-      include_patterns: []
-      exclude_patterns: []
-    image_embed:
-      enabled: true
-      max_image_size: 10485760
-    jwt:
-      require_auth: false
+  backend.yaml: | {{-
+    include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.walletBackend.config.server.main.\"backend.yaml\""
+        (index .Values.walletBackend.configOverrides.server.main "backend.yaml")
+      )
+    | nindent 4
+  }}
+  registry.yaml: | {{-
+    include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.walletBackend.config.server.main.\"registry.yaml\""
+        (index .Values.walletBackend.configOverrides.server.main "registry.yaml")
+      )
+    | nindent 4
+  }}
 
 ---
 apiVersion: apps/v1
@@ -314,41 +376,15 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  tenant.yaml: |-
-    tenants:
-      - id: {{ .Values.tenant.id }}
-        name: {{ .Values.tenant.id }}
-        display_name: {{ include "siros-id.displayName" . | quote }}
-        {{- if .Values.walletBackend.oidcGate }}
-        oidc_gate: {{- toYamlPretty .Values.walletBackend.oidcGate | nindent 10 }}
-        {{- end }}
-        require_invite: {{ .Values.features.requireInvite }}
-        trust_config:
-          pdp_url: {{ .Values.pdp.externalUrl | quote }}
-        issuers:
-          {{- range $issuers }}
-          - credential_issuer_identifier: {{ .url }}
-            {{- if (hasKey . "visible") }}
-            visible: {{ .visible }}
-            {{- else }}
-            visible: true
-            {{- end }}
-            {{- if (hasKey . "clientId") }}
-            client_id: {{ .clientId | quote }}
-            {{- else }}
-            client_id: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/
-            {{- end }}
-          {{- end }}
-        verifiers:
-          {{- range $verifiers }}
-          {{- if (or (not ((hasKey . "visible"))) (.visible)) }}
-          - name: {{ .displayName | quote }}
-            url: {{ .url | quote }}
-          {{- end }}
-          {{- end }}
-      {{- with .Values.walletBackend.extraTenants }}
-      {{- toYamlPretty . | nindent 8 }}
-      {{- end }}
+  tenant.yaml: | {{-
+    include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.walletBackend.config.configJob.main.\"tenant.yaml\""
+        (index .Values.walletBackend.configOverrides.configJob.main "tenant.yaml")
+      )
+    | nindent 4
+  }}
           
 ---
 apiVersion: batch/v1
