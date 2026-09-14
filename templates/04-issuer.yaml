@@ -99,6 +99,9 @@ spec:
             secretName: issuer-registry-sign-cert
         - name: sign-cert-chain
           emptyDir: {}
+        - name: extra-files
+          configMap:
+            name: issuer-extra-files
         - name: server-cert
           secret:
             secretName: issuer-registry-server-cert
@@ -139,6 +142,9 @@ spec:
               readOnly: true
             - name: sign-cert-chain
               mountPath: /sign-cert-chain
+              readOnly: true
+            - name: extra-files
+              mountPath: /extra-files
               readOnly: true
             - name: server-cert
               mountPath: /server-cert
@@ -413,6 +419,9 @@ spec:
             secretName: issuer-core-sign-cert
         - name: sign-cert-chain
           emptyDir: {}
+        - name: extra-files
+          configMap:
+            name: issuer-extra-files
         - name: client-cert
           secret:
             secretName: issuer-apigw-client-cert
@@ -479,6 +488,9 @@ spec:
               readOnly: true
             - name: sign-cert-chain
               mountPath: /sign-cert-chain
+              readOnly: true
+            - name: extra-files
+              mountPath: /extra-files
               readOnly: true
             - name: client-cert
               mountPath: /client-cert
@@ -563,13 +575,13 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: issuer-sign-extra-certs
+  name: issuer-extra-files
   namespace: {{ $ns }}
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
   .empty: "I am here so that the configmap won't ever be empty"
-  {{- range $key, $value := $.Values.issuer.extraCerts }}
+  {{- range $key, $value := $.Values.issuer.extraFiles }}
   {{ $key }}: | {{- $value | nindent 4 }}
   {{- end }}
 
@@ -657,9 +669,9 @@ spec:
         - name: client-cert
           secret:
             secretName: issuer-core-client-cert
-        - name: sign-extra-certs
+        - name: extra-files
           configMap:
-            name: issuer-sign-extra-certs
+            name: issuer-extra-files
       initContainers:
         {{- include "siros-id.certChainGenInitContainer" . | nindent 8 }}
       containers:
@@ -695,8 +707,8 @@ spec:
             - name: client-cert
               mountPath: /client-cert
               readOnly: true
-            - name: sign-extra-certs
-              mountPath: /sign-extra-certs
+            - name: extra-files
+              mountPath: /extra-files
               readOnly: true
 
 ---
