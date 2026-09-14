@@ -231,7 +231,7 @@ issuer:
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "issuer-registry-sign" "ou" "signers" "usages" (list "digital signature" "content commitment")
-  "rotationPolicy" "Never" "issuerRef" .Values.global.certManager.credentialSigning.issuerRef "duration" "8760h")) }}
+  "rotationPolicy" "Never" "issuer" .Values.global.certManager.credentialSigning "duration" "8760h")) }}
 
 ---
 apiVersion: v1
@@ -405,7 +405,7 @@ spec:
 ---
 {{ include "siros-id.certificate" (list . (dict 
   "name" "issuer-core-sign" "literalSubject" (printf "CN=%s,OU=signers,O=siros-id" $hostnameIssuer) "dnsNames" (list $hostnameIssuer) "usages" (list "digital signature" "content commitment")
-  "rotationPolicy" "Never" "issuerRef" .Values.global.certManager.credentialSigning.issuerRef "duration" "8760h")) }}
+  "rotationPolicy" "Never" "issuer" .Values.global.certManager.credentialSigning "duration" "8760h")) }}
 
 ---
 apiVersion: v1
