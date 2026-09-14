@@ -63,7 +63,9 @@ apigw:
       allowed_origins:
         - https://{{ $hostnameWalletFrontend }}
         {{- range .Values.features.extraWallets }}
+        {{ if or (hasPrefix "http://" .url) (hasPrefix "https://" .url) }}
         - {{ include "siros-id.originFromUrl" .url }}
+        {{- end }}
         {{- end }}
     trust_proxy_tls: true
     {{- include "siros-id.vc.config.apiAuth" . | nindent 4 }}
