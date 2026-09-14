@@ -165,6 +165,14 @@ issuer:
     # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
     # and affect risk of information leakage.
     sectionSize: 1000000
+  signCertPath: "/sign-cert-chain/tls.crt"
+  # Add extra files to the pod that will be mounted to /extra-files
+  # extraFiles:
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+  extraFiles: {}
   # Advanced usage - see docs/CONFIG_OVERRIDES.md
   configOverrides:
     registry:
@@ -209,6 +217,14 @@ verifier:
   #       "*": "*"
   presentationRequestTemplates: {}
   presets: {}
+  signCertPath: "/sign-cert-chain/tls.crt"
+  # Add extra files to the pod that will be mounted to /extra-files
+  # extraFiles:
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+  extraFiles: {}
   # Advanced usage - see docs/CONFIG_OVERRIDES.md
   configOverrides:
     main:
