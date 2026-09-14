@@ -119,6 +119,10 @@ pdp:
   # See go-trust config for more details.
   # https://github.com/sirosfoundation/go-trust/
   extraRegistries: {}
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    main:
+      "config.yaml": {}
 
 issuer:
   enabled: true
@@ -154,6 +158,19 @@ issuer:
     # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
     # and affect risk of information leakage.
     sectionSize: 1000000
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    registry:
+      main:
+        "config.yaml": {}
+        "secrets.yaml.template": {}
+    apigw:
+      main:
+        "config.yaml": {}
+        "secrets.yaml.template": {}
+    core:
+      main:
+        "config.yaml": {}
 
 verifier:
   enabled: true
@@ -185,6 +202,11 @@ verifier:
   #       "*": "*"
   presentationRequestTemplates: {}
   presets: {}
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    main:
+      "config.yaml": {}
+      "secrets.yaml.template": {}
 
 walletBackend:
   # oidcGate uses the following redirectURI: https://<frontend-url>/id/<tenant-id>/oidc/cb
@@ -222,6 +244,15 @@ walletBackend:
     - android:apk-key-hash:xAfybcO0yPlUA/Gko2tH6oIRb9Y+qa3uVtm0m/qW07Q
     - android:apk-key-hash:xAfybcO0yPlUA_Gko2tH6oIRb9Y-qa3uVtm0m_qW07Q
     - android:apk-key-hash:RlbwJAhVMvCUD1Ngog5qMZoLV1s4xr34SLaVCTnLsC8
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    server:
+      main:
+        "backend.yaml": {}
+        "registry.yaml": {}
+    configJob:
+      main:
+        "tenant.yaml": {}
 
 walletFrontend:
   basePath: ""

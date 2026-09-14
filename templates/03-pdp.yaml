@@ -1,6 +1,64 @@
 {{- $ns := include "siros-id.namespace" . -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+{{- define "siros-id.pdp.config.main.\"config.yaml\"" -}}
 {{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
 {{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
+server:
+  host: "0.0.0.0"
+  port: 8080
+  external_url: {{ .Values.pdp.externalUrl }}
+logging:
+  level: debug
+  format: json
+registries:
+  {{- if .Values.pdp.disableTrustValidation }}
+  always_trusted:
+    enabled: true
+    name: Always-Allow
+    description: Trust validation bypass (danger zone)
+  {{- else }}
+  {{- if .Values.pdp.extraRegistries }}
+  {{- toYamlPretty .Values.pdp.extraRegistries | nindent 2 }}
+  {{- end }}
+  {{- if .Values.pdp.default_whitelist }}
+  whitelist:
+    enabled: true
+    name: Static-Allowlist
+    description: Pre-configured URLs for trusted parties
+    lists:
+      # TODO: All issuers should not be PID provider, add another toggle for this.
+      pid-issuers:
+        {{- range $issuers }}
+        - {{ .url }}
+        {{- end }}
+      verifiers:
+        # Issuers are included as verifiers since they may use OpenID4VP to authorize issuance
+        {{- range $issuers }}
+        - {{ .url }}
+        {{- end }}
+        {{- range $verifiers }}
+        - {{ .url }}
+        {{- end }}
+    actions:
+      pid-provider: pid-issuers
+      credential-issuer: pid-issuers
+      verifier: verifiers
+      credential-verifier: verifiers
+  mdociaca:
+    enabled: true
+    name: mDOC-IACA
+    description: mDOC IACA certificate validation
+    cache_ttl: "5m"
+    http_timeout: "30s"
+    issuer_allowlist:
+      {{- range $issuers }}
+      - {{ .url }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -10,60 +68,15 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  config.yaml: |
-    server:
-      host: "0.0.0.0"
-      port: 8080
-      external_url: {{ .Values.pdp.externalUrl }}
-    logging:
-      level: debug
-      format: json
-    registries:
-      {{- if .Values.pdp.disableTrustValidation }}
-      always_trusted:
-        enabled: true
-        name: Always-Allow
-        description: Trust validation bypass (danger zone)
-      {{- else }}
-      {{- if .Values.pdp.extraRegistries }}
-      {{- toYamlPretty .Values.pdp.extraRegistries | nindent 6 }}
-      {{- end }}
-      {{- if .Values.pdp.default_whitelist }}
-      whitelist:
-        enabled: true
-        name: Static-Allowlist
-        description: Pre-configured URLs for trusted parties
-        lists:
-          # TODO: All issuers should not be PID provider, add another toggle for this.
-          pid-issuers:
-            {{- range $issuers }}
-            - {{ .url }}
-            {{- end }}
-          verifiers:
-            # Issuers are included as verifiers since they may use OpenID4VP to authorize issuance
-            {{- range $issuers }}
-            - {{ .url }}
-            {{- end }}
-            {{- range $verifiers }}
-            - {{ .url }}
-            {{- end }}
-        actions:
-          pid-provider: pid-issuers
-          credential-issuer: pid-issuers
-          verifier: verifiers
-          credential-verifier: verifiers
-      mdociaca:
-        enabled: true
-        name: mDOC-IACA
-        description: mDOC IACA certificate validation
-        cache_ttl: "5m"
-        http_timeout: "30s"
-        issuer_allowlist:
-          {{- range $issuers }}
-          - {{ .url }}
-          {{- end }}
-      {{- end }}
-      {{- end }}
+  config.yaml: | {{-
+    include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.pdp.config.main.\"config.yaml\""
+        (index .Values.pdp.configOverrides.main "config.yaml")
+      )
+    | nindent 4
+  }}
 
 ---
 apiVersion: apps/v1

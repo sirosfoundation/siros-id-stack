@@ -598,3 +598,24 @@ api_auth:
 {{- fail "issuer.enabled or features.extraIssuers is required" -}}
 {{- end -}}
 {{- end -}}
+
+{{/* Render templated YAML with optional overrides.
+See docs/CONFIG_OVERRIDES.md for more information.
+If no overrides are provided, render template directly without YAML deserialization since that
+could affect the order of keys as specified in the template.
+*/}}
+{{- define "siros-id.renderYamlWithOverrides" -}}
+{{- $root := index . 0 -}}
+{{- $template := index . 1 -}}
+{{- $overrides := index . 2 -}}
+{{- $renderedTemplate := include $template $root -}}
+{{- if not $overrides -}}
+{{- $renderedTemplate -}}
+{{- else -}}
+{{- $data := $renderedTemplate | fromYaml -}}
+{{- if $data.Error -}}
+{{- fail (printf "template \"%s\" did not render parseable YAML: %s" $template $data.Error) -}}
+{{- end -}}
+{{- mergeOverwrite $data (deepCopy $overrides) | toYamlPretty -}}
+{{- end -}}
+{{- end -}}
