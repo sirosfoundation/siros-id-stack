@@ -190,6 +190,9 @@ verifier:
   presets: {}
 
 walletBackend:
+  attestation:
+    # Include CA certificate in certificate chain for attestation JWTs
+    includeCaCertificate: false
   # oidcGate uses the following redirectURI: https://<frontend-url>/id/<tenant-id>/oidc/cb
   # oidcGate:
   #   mode: "both"
