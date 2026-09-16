@@ -232,6 +232,12 @@ verifier:
       "secrets.yaml.template": {}
 
 walletBackend:
+  attestation:
+    # Set to "etsi" (no "iss" claim per requirements) or "ietf"
+    mode: etsi
+    # Include CA certificate in certificate chain for attestation JWTs
+    # (not permitted by some conformance tests).
+    includeCaCertificate: false
   # oidcGate uses the following redirectURI: https://<frontend-url>/id/<tenant-id>/oidc/cb
   # oidcGate:
   #   mode: "both"

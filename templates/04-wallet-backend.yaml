@@ -47,10 +47,12 @@ jwt:
 wallet_provider:
   private_key_path: /provider-cert/tls.key
   certificate_path: /provider-cert/tls.crt
+  {{- if .Values.walletBackend.attestation.includeCaCertificate }}
   ca_cert_path: /provider-cert/ca.crt
+  {{- end }}
   wia:
     enabled: true
-    mode: etsi
+    mode: {{ .Values.walletBackend.attestation.mode | quote }}
     issuer: https://{{ include "siros-id.hostname.walletBackend" . }}
     wallet_provider_uri: https://{{ include "siros-id.hostname.walletBackend" . }}
     wallet_version: 1.0.0
