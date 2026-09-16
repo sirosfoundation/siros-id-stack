@@ -22,7 +22,7 @@ verifier:
     addr: ":8080"
   key_config:
     private_key_path: /sign-cert/tls.key
-    chain_path: /sign-cert-chain/tls.crt
+    chain_path: {{ .Values.verifier.signCertPath }}
   trust:
     pdp_url: {{ .Values.pdp.externalUrl | quote }}
   supported_wallets:
@@ -133,6 +133,20 @@ data:
   }}
 
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verifier-extra-files
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  .empty: "I am here so that the configmap won't ever be empty"
+  {{- range $key, $value := $.Values.verifier.extraFiles }}
+  {{ $key }}: | {{- $value | nindent 4 }}
+  {{- end }}
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -176,6 +190,9 @@ spec:
         - name: sign-cert
           secret:
             secretName: verifier-sign-cert
+        - name: extra-files
+          configMap:
+            name: verifier-extra-files
         - name: sign-cert-chain
           emptyDir: {}
         - name: branding
@@ -245,6 +262,9 @@ spec:
               readOnly: true
             - name: client-cert
               mountPath: /client-cert
+              readOnly: true
+            - name: extra-files
+              mountPath: /extra-files
               readOnly: true
 
 ---
