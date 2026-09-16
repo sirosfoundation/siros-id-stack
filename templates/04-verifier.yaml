@@ -30,8 +30,27 @@ verifier:
     {{- range .Values.features.extraWallets }}
     {{ .displayName | quote }}: {{ .url }}/cb
     {{- end }}
+  {{- if eq .Values.verifier.clientIdScheme "did" }}
+  client_id_scheme: did
+  did: {{ .Values.verifier.did | default (printf "did:web:%s" .Values.verifier.did) | quote }}
+  {{- else }}
+  client_id_scheme: {{ .Values.verifier.clientIdScheme | quote }}
+  {{- end }}
+  {{- if .Values.verifier.dcapi.enabled }}
   digital_credentials:
-    enable: {{ .Values.verifier.dcapi.enabled }}
+    enable: true
+    use_jar: {{ .Values.verifier.dcapi.useJar }}
+    {{- with .Values.verifier.dcapi.responseMode }}
+    response_mode: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.verifier.dcapi.deepLinkScheme }}
+    deep_link_scheme: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.verifier.zkCircuits.sources }}
+    zk_circuits:
+      sources: {{- toYamlPretty . | nindent 6 }}
+    {{- end }}
+  {{- end }}
   inbound:
     openid4vp:
       token_endpoint: https://{{ $hostnameVerifier }}/token
@@ -58,20 +77,22 @@ verifier:
   {{- with .Values.verifier.presets }}
   presets: {{ toYamlPretty . | nindent 4 }}
   {{- end }}
-  {{- if .Values.verifier.oidc_provider.enabled }}
+  {{- if .Values.verifier.oidcProvider.enabled }}
   outbound:
-    oidc_provider:
+    oidcProvider:
       issuer: https://{{ $hostnameVerifier }}
-      subject_type: pairwise
-      enable_userinfo: true
+      subject_type: {{ .Values.verifier.oidcProvider.subjectType | quote }}
+      {{- with .Values.verifier.oidcProvider.staticClients }}
+      static_clients: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
   {{- end }}
 {{- end -}}
 
 {{- define "siros-id.verifier.config.main.\"secrets.yaml.template\"" -}}
 verifier:
   outbound:
-    oidc_provider:
-      subject_salt: ${OIDC_PROVIDER_SUBJECT_SALT}
+    oidcProvider:
+      subject_salt: ${oidcProvider_SUBJECT_SALT}
 {{- end -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
 
@@ -225,7 +246,7 @@ spec:
               done
         {{- include "siros-id.secretsRendererInitContainer" (list . (dict
           "secretName" "verifier-main"
-          "envs" (dict "OIDC_PROVIDER_SUBJECT_SALT" "oidcProviderSubjectSalt"))) | nindent 8 }}
+          "envs" (dict "oidcProvider_SUBJECT_SALT" "oidcProviderSubjectSalt"))) | nindent 8 }}
       containers:
         - name: main
           image: {{ .Values.images.verifier | quote }}

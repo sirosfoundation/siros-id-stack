@@ -29,6 +29,10 @@ registry:
       private_key_path: /sign-cert/tls.key
       chain_path: {{ .Values.issuer.signCertPath }}
     section_size: {{ .Values.issuer.registry.sectionSize }}
+    token_refresh_interval: {{ .Values.issuer.registry.tokenRefreshInterval }}
+  admin_gui:
+    enable: {{ .Values.issuer.registry.adminGui.enabled }}
+    username: {{ .Values.issuer.registry.adminGui.username }}
 {{- end -}}
 
 {{- define "siros-id.issuer.config.registry.main.\"secrets.yaml.template\"" -}}
