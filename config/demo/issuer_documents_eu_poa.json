@@ -1,0 +1,96 @@
+{
+    "100": {
+        "meta": {
+            "authentic_source": "MockTaxAuthority",
+            "scope": "eu_poa",
+            "document_id": "document_id_eu_poa_100",
+            "created_at": "0001-01-01T00:00:00Z"
+        },
+        "identity_mapping_ids": [
+            "authentic_source_person_id_100"
+        ],
+        "document_data": {
+            "attestation_legal_category": "QEAA",
+            "issuing_authority": "Notariat Berlin-Mitte",
+            "issuing_country": "DE",
+            "date_of_execution": "2026-02-01",
+            "euid_reference": "DEHRB.B123456",
+            "principal_full_name": "Gary Oldman",
+            "principal_date_of_birth": "1988-09-09",
+            "principal_place_of_birth": "Manchester",
+            "principal_identification_document_kind": "national_id_card",
+            "principal_identification_document_number": "L01X00T47",
+            "principal_full_address": "Friedrichstraße 100, 10117 Berlin, Germany",
+            "company_statutory_full_name": "Rheinmark Logistik GmbH",
+            "company_business_register_name": "Handelsregister Amtsgericht Charlottenburg",
+            "company_business_register_location": "Berlin",
+            "company_kind_of_legal_entity": "GmbH",
+            "company_jurisdiction": "DE",
+            "company_registered_office": "Friedrichstraße 100, 10117 Berlin, Germany",
+            "attorney_full_name": "Helen Mirren",
+            "attorney_date_of_birth": "1996-01-30",
+            "attorney_place_of_birth": "London",
+            "attorney_identification_document_kind": "passport",
+            "attorney_identification_document_number": "ZS0123456",
+            "attorney_full_address": "Sveavägen 42, 111 34 Stockholm, Sweden",
+            "scope_of_representation_powers": [
+                "Conclusion of purchase and service contracts up to EUR 50,000",
+                "Signing of tender documents and supplier registrations"
+            ],
+            "scope_of_representation_power_of_substitution": "not_allowed",
+            "validity_period_valid_from": "2026-02-01",
+            "validity_period_valid_until": "2027-01-31",
+            "applicable_law_jurisdiction": "DE",
+            "signing_place": "Berlin",
+            "signing_date": "2026-02-01",
+            "trust_anchor": "https://trust.example.org/anchors/de/notariat"
+        }
+    },
+    "102": {
+        "meta": {
+            "authentic_source": "MockTaxAuthority",
+            "scope": "eu_poa",
+            "document_id": "document_id_eu_poa_102",
+            "created_at": "0001-01-01T00:00:00Z"
+        },
+        "identity_mapping_ids": [
+            "authentic_source_person_id_102"
+        ],
+        "document_data": {
+            "attestation_legal_category": "QEAA",
+            "issuing_authority": "Notarius Publicus Stockholm",
+            "issuing_country": "SE",
+            "date_of_execution": "2026-02-01",
+            "euid_reference": "SEBOLAG.5591234567",
+            "principal_full_name": "Helen Mirren",
+            "principal_date_of_birth": "1996-01-30",
+            "principal_place_of_birth": "London",
+            "principal_identification_document_kind": "national_id_card",
+            "principal_identification_document_number": "L01X00T47",
+            "principal_full_address": "Sveavägen 42, 111 34 Stockholm, Sweden",
+            "company_statutory_full_name": "Aurora Analytics AB",
+            "company_business_register_name": "Bolagsverket",
+            "company_business_register_location": "Sundsvall",
+            "company_kind_of_legal_entity": "AB",
+            "company_jurisdiction": "SE",
+            "company_registered_office": "Sveavägen 42, 111 34 Stockholm, Sweden",
+            "attorney_full_name": "Gary Oldman",
+            "attorney_date_of_birth": "1988-09-09",
+            "attorney_place_of_birth": "Manchester",
+            "attorney_identification_document_kind": "passport",
+            "attorney_identification_document_number": "ZS0123456",
+            "attorney_full_address": "Friedrichstraße 100, 10117 Berlin, Germany",
+            "scope_of_representation_powers": [
+                "Conclusion of purchase and service contracts up to EUR 50,000",
+                "Signing of tender documents and supplier registrations"
+            ],
+            "scope_of_representation_power_of_substitution": "not_allowed",
+            "validity_period_valid_from": "2026-02-01",
+            "validity_period_valid_until": "2027-01-31",
+            "applicable_law_jurisdiction": "SE",
+            "signing_place": "Sundsvall",
+            "signing_date": "2026-02-01",
+            "trust_anchor": "https://trust.example.org/anchors/se/notariat"
+        }
+    }
+}
