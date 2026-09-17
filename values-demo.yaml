@@ -43,7 +43,7 @@ features:
               claims:
                 - given_name
                 - family_name
-                - birthdate        
+                - birthdate
     "diploma":
       vct: urn:eudi:diploma:1
       format: dc+sd-jwt
@@ -85,6 +85,71 @@ features:
             - birthdate
       vctm:
         file: "config/demo/vctm_mdl.json"
+    "ebw_oid":
+      # ds001 - Owner Identification Data: which legal person owns the wallet.
+      vct: uri:eu.ebw.oid.1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_ebw_oid.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
+    "eucc":
+      # ds004 - EU Company Certificate: the business-register extract.
+      vct: urn:eudi:eucc:1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_eucc.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
+    "eu_poa":
+      # ds007 - EU Power of Attorney: a principal grants an attorney powers to
+      # represent the company. Each demo person is the attorney for the other's.
+      vct: uri:eu.eudi.eu-poa.1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_eu_poa.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
+    "iban_ov":
+      # rb-iban-ov - IBAN Ownership Verification: the company's bank account.
+      vct: eu.we-build.iban-ov.1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_iban_ov.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
 
 issuer:
   identitymappingImport:
@@ -108,6 +173,14 @@ issuer:
         file: "config/demo/issuer_documents_pid_mdoc.json"
       mdl:
         file: "config/demo/issuer_documents_mdl.json"
+      ebw_oid:
+        file: "config/demo/issuer_documents_ebw_oid.json"
+      eucc:
+        file: "config/demo/issuer_documents_eucc.json"
+      eu_poa:
+        file: "config/demo/issuer_documents_eu_poa.json"
+      iban_ov:
+        file: "config/demo/issuer_documents_iban_ov.json"
     users:
       - "100"
       - "102"
@@ -145,6 +218,24 @@ verifier:
         claims:
           - path: ["personal_administrative_number"]
           - path: ["document_number"]
+    "Demo: Company identity (EUCC)":
+      eucc:
+        claims:
+          - path: ["legal_person_name"]
+          - path: ["legal_person_id"]
+          - path: ["legal_person_status"]
+          - path: ["legal_representative"]
+    "Demo: Representation + company account":
+      eu_poa:
+        claims:
+          - path: ["attorney_full_name"]
+          - path: ["company_statutory_full_name"]
+          - path: ["scope_of_representation_powers"]
+          - path: ["validity_period_valid_until"]
+      iban_ov:
+        claims:
+          - path: ["bank_account", "iban"]
+          - path: ["account_ownership", "owner_name"]
   presentationRequestTemplates: 
     "demo_pid_rb_1_5_basic":
       name: "Demo PID RB 1.5 - Basic Profile"
@@ -191,4 +282,125 @@ verifier:
         family_name: "family_name"
         birthdate: "birthdate"
         personal_administrative_number: "personal_administrative_number"
+      enabled: true
+    "ebw_oid_owner":
+      name: "EU Business Wallet - Owner Identification (EBW-OID)"
+      description: "Which legal person owns this business wallet"
+      version: "1.0"
+      oidc_scopes:
+        - "ebw_oid"
+      dcql:
+        credentials:
+          - id: "ebw_oid"
+            format: "dc+sd-jwt"
+            meta:
+              vct_values:
+                - "uri:eu.ebw.oid.1"
+            claims:
+              - path: ["id"]
+              - path: ["name"]
+              - path: ["issuing_authority"]
+              - path: ["issuing_country"]
+              - path: ["date_of_expiry"]
+      claim_mappings:
+        id: "legal_person_id"
+        name: "legal_person_name"
+        issuing_authority: "issuing_authority"
+        issuing_country: "issuing_country"
+        date_of_expiry: "date_of_expiry"
+      enabled: true
+    "eucc_company_extract":
+      name: "EU Company Certificate - Register Extract"
+      description: "Company identity, status, activity and legal representatives from the business register"
+      version: "1.0"
+      oidc_scopes:
+        - "eucc"
+      dcql:
+        credentials:
+          - id: "eucc"
+            format: "dc+sd-jwt"
+            meta:
+              vct_values:
+                - "urn:eudi:eucc:1"
+            claims:
+              - path: ["legal_person_name"]
+              - path: ["legal_person_id"]
+              - path: ["legal_form_type"]
+              - path: ["registration_member_state"]
+              - path: ["legal_person_status"]
+              - path: ["legal_person_activity", "code"]
+              - path: ["legal_representative"]
+              - path: ["registered_address", "full_address"]
+              - path: ["issuing_authority"]
+      claim_mappings:
+        legal_person_name: "legal_person_name"
+        legal_person_id: "legal_person_id"
+        legal_form_type: "legal_form_type"
+        registration_member_state: "registration_member_state"
+        legal_person_status: "legal_person_status"
+        legal_person_activity: "legal_person_activity"
+        legal_representative: "legal_representative"
+        registered_address: "registered_address"
+        issuing_authority: "issuing_authority"
+      enabled: true
+    "eu_poa_representation":
+      name: "EU Power of Attorney - Representation Check"
+      description: "Who may represent which company, with which powers and until when"
+      version: "1.0"
+      oidc_scopes:
+        - "eu_poa"
+      dcql:
+        credentials:
+          - id: "eu_poa"
+            format: "dc+sd-jwt"
+            meta:
+              vct_values:
+                - "uri:eu.eudi.eu-poa.1"
+            claims:
+              - path: ["attorney_full_name"]
+              - path: ["principal_full_name"]
+              - path: ["company_statutory_full_name"]
+              - path: ["euid_reference"]
+              - path: ["scope_of_representation_powers"]
+              - path: ["scope_of_representation_power_of_substitution"]
+              - path: ["validity_period_valid_from"]
+              - path: ["validity_period_valid_until"]
+              - path: ["issuing_authority"]
+      claim_mappings:
+        attorney_full_name: "attorney_full_name"
+        principal_full_name: "principal_full_name"
+        company_statutory_full_name: "company_name"
+        euid_reference: "euid"
+        scope_of_representation_powers: "powers"
+        scope_of_representation_power_of_substitution: "substitution"
+        validity_period_valid_from: "valid_from"
+        validity_period_valid_until: "valid_until"
+        issuing_authority: "issuing_authority"
+      enabled: true
+    "iban_ov_account":
+      name: "IBAN Ownership Verification - Company Account"
+      description: "Which bank account belongs to the company, and through whom"
+      version: "1.0"
+      oidc_scopes:
+        - "iban_ov"
+      dcql:
+        credentials:
+          - id: "iban_ov"
+            format: "dc+sd-jwt"
+            meta:
+              vct_values:
+                - "eu.we-build.iban-ov.1"
+            claims:
+              - path: ["bank_account", "iban"]
+              - path: ["bank_account", "account_name"]
+              - path: ["bank_account", "account_currency"]
+              - path: ["account_ownership", "owner_name"]
+              - path: ["account_ownership", "owner_type"]
+              - path: ["account_ownership", "legal_person_identifiers"]
+              - path: ["account_provider", "provider_name"]
+              - path: ["account_provider", "bic_swift"]
+      claim_mappings:
+        bank_account: "bank_account"
+        account_ownership: "account_ownership"
+        account_provider: "account_provider"
       enabled: true

@@ -50,6 +50,53 @@ The following must be set in your values overlays (the chart defaults alone are 
 * config/demo - demo credentials, documents and identities
 * quickstart - example values and scripts
 
+### Demo credentials
+
+`values-demo.yaml` declares two groups of credential types:
+
+| scope | vct | issuance |
+|---|---|---|
+| `demo_1` | `urn:demo:1` | OIDC claims, built on the fly |
+| `demo_pid_rb_1_5` | registry URL | OIDC login, from the datastore |
+| `ehic` | `urn:eudi:ehic:1` | PID presentation |
+| `diploma` | `urn:eudi:diploma:1` | PID presentation |
+| `ebw_oid` | `uri:eu.ebw.oid.1` | PID presentation |
+| `eucc` | `urn:eudi:eucc:1` | PID presentation |
+| `eu_poa` | `uri:eu.eudi.eu-poa.1` | PID presentation |
+| `iban_ov` | `eu.we-build.iban-ov.1` | PID presentation |
+
+The last four are the [WE BUILD](https://we-build.eu) EU Business Wallet
+attestations - owner identification (ds001), the company-register extract
+(ds004), a power of attorney (ds007) and IBAN ownership verification. Their
+type metadata is served from
+[registry.siros.org](https://registry.siros.org/webuild-consortium).
+
+Every type marked *PID presentation* is issued through an OpenID4VP
+presentation of `demo_pid_rb_1_5` (`issuance.authProvider: openid4vp`,
+`source: datastore`): the holder gets a PID first, and the identity in that
+PID - given name, family name, date of birth - selects which documents come
+out of the datastore. Business attestations work this way because they say
+something about a legal person *through* the natural person representing it,
+which is how they would be issued in a live setting.
+
+The sample documents in `config/demo` give both demo identities a company of
+their own, so either one can exercise the full set:
+
+| demo user | company | EBW-OID | EUCC | EU PoA | IBAN-OV |
+|---|---|---|---|---|---|
+| 100 - Helen Mirren | Aurora Analytics AB (SE) | yes | yes | attorney for Rheinmark Logistik | SEB account |
+| 102 - Gary Oldman | Rheinmark Logistik GmbH (DE) | yes | yes | attorney for Aurora Analytics | Deutsche Bank account |
+
+Each person holds a power of attorney for the *other* person's company, so
+the two-party case is testable from either identity. The verifier gets
+matching presentation-request templates and two presets ("Demo: Company
+identity", "Demo: Representation + company account").
+
+Note that documents are imported only when the datastore is initialised. An
+environment that already holds data will not pick up a new credential type on
+upgrade - clear the datastore, or add the documents through the issuer API
+(see `quickstart/add-documents.sh`).
+
 ## Deployment Examples
 Example of templating with local chart:
 ```bash
