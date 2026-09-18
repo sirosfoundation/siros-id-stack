@@ -92,6 +92,51 @@ the two-party case is testable from either identity. The verifier gets
 matching presentation-request templates and two presets ("Demo: Company
 identity", "Demo: Representation + company account").
 
+#### Minimal and `-full` documents
+
+Every type has its demo data in two sizes, so both the everyday case and a
+credential carrying every optional claim can be exercised:
+
+* the **minimal** document carries the claims the type's own metadata marks
+  `mandatory`, plus the handful of optional claims this chart's demo surface
+  actually reads - the `svg_id` bindings in the VCTM, and the claims named by
+  `verifier.presets` and `verifier.presentationRequestTemplates`. Where a type
+  marks nothing mandatory at all (`ehic`), it is the type's identifying core;
+* the **maximal** document carries mandatory *and* every optional claim the
+  type declares. Its `meta.document_id` ends in **`-full`** - that suffix is
+  the only marking, so `grep -l -- '-full' config/demo/*.json` finds them.
+
+User 100 (Helen Mirren) holds the minimal document of every type and user 102
+(Gary Oldman) the `-full` one. 102 is the identity the demo OIDC account
+above logs in as, so the richest documents are the ones you can actually
+obtain, and every shipped preset and presentation-request template still
+matches. A holder never has two documents of the same scope: nothing would
+pick between them at issuance time.
+
+| scope | minimal | `-full` | what only the `-full` document has |
+|---|---|---|---|
+| `demo_pid_rb_1_5` | 100 | 102 | address, birth names, sex, email, phone, issuance date and jurisdiction, `trust_anchor`, `attestation_legal_category` |
+| `ehic` | 100 | 102 | `authentic_source`, `date_of_issuance` |
+| `diploma` | - | 102 | nothing - see below |
+| `pid_mdoc` | 100 | 102 | document and administrative numbers, residence, birth names, contact details, sex, `pseudonym_seed` |
+| `mdl` | 100 | 102 | ages, residence, birth place, `height`, `weight`, eye/hair colour, national-character names, `signature_usual_mark`, `pseudonym_seed`, `driving_privileges[].codes` |
+| `ebw_oid` | 100 | 102 | `trust_anchor` |
+| `eucc` | 100 | 102 | structured address, activity description, share capital, contact point, `legal_person_duration`, `trust_anchor` |
+| `eu_poa` | 100 | 102 | identification documents, home addresses, places of birth, register location, `trust_anchor` |
+| `iban_ov` | 100 | 102 | account type, owner's given name and surname, provider country, bank codes, provider identifiers, `trust_anchor_url` |
+
+`diploma` is the exception. Its `document_data` is an entire embedded W3C
+Verifiable Credential - roughly 200 nested fields - while `vctm_diploma.json`
+declares 7 claims, and its `credentialSubject` describes a third person
+(EBSI/ELM sample data) rather than the holder. Both demo documents are
+identical apart from the `-full` marking; nobody has decided yet whether the
+type metadata should grow to describe what is issued or the documents should
+shrink to what the type declares.
+
+When you add a claim to a demo document, add it to that type's
+`config/demo/vctm_*.json` first: a claim no metadata declares may be dropped
+at issuance, and nothing reports that it happened.
+
 Note that documents are imported only when the datastore is initialised. An
 environment that already holds data will not pick up a new credential type on
 upgrade - clear the datastore, or add the documents through the issuer API
