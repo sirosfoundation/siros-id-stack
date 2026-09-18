@@ -9,25 +9,16 @@
       "authentic_source_person_id_100"
     ],
     "document_data": {
-      "age_birth_year": 1996,
-      "age_in_years": 30,
-      "age_over_18": true,
-      "age_over_21": true,
-      "age_over_65": false,
-      "birth_place": "Tulegatan 11",
-      "document_number": "doc-mdl-mirren-authentic_source_person_id_100",
-      "expiry_date": "2033-01-01",
       "family_name": "Mirren",
       "given_name": "Helen",
-      "issuing_authority": "SUNET",
+      "birth_date": "1996-01-30",
+      "issue_date": "2024-01-01",
+      "expiry_date": "2033-01-01",
       "issuing_country": "SE",
-      "issuing_jurisdiction": "Stockholm",
-      "resident_address": "Tulegatan 11, Stockholm",
-      "resident_city": "Stockholm",
-      "resident_country": "SE",
-      "resident_postal_code": "11353",
-      "resident_state": "Stockholm",
-      "sex": 0,
+      "issuing_authority": "SUNET",
+      "document_number": "doc-mdl-mirren-authentic_source_person_id_100",
+      "portrait": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
+      "un_distinguishing_sign": "S",
       "driving_privileges": [
         {
           "vehicle_category_code": "B",
@@ -35,50 +26,50 @@
           "expiry_date": "2033-01-01"
         }
       ],
-      "un_distinguishing_sign": "S",
-      "birth_date": "1996-01-30",
-      "portrait": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
-      "administrative_number": "pan-authentic_source_person_id_100",
-      "nationalities": [
-        "SE"
-      ],
-      "issue_date": "2024-01-01"
+      "age_over_18": true
     }
   },
   "102": {
     "meta": {
       "authentic_source": "MockTaxAuthority",
       "scope": "mdl",
-      "document_id": "document_id_mdl_102"
+      "document_id": "document_id_mdl_102-full"
     },
     "identity_mapping_ids": [
       "authentic_source_person_id_102"
     ],
     "document_data": {
       "age_birth_year": 1988,
-      "age_in_years": 37,
+      "age_in_years": 38,
       "age_over_18": true,
       "age_over_21": true,
       "age_over_65": false,
-      "birth_place": "Tulegatan 11",
+      "birth_place": "Göteborg",
       "document_number": "doc-mdl-oldman-authentic_source_person_id_102",
       "expiry_date": "2033-01-01",
       "family_name": "Oldman",
       "given_name": "Gary",
       "issuing_authority": "SUNET",
       "issuing_country": "SE",
-      "issuing_jurisdiction": "Stockholm",
-      "resident_address": "Tulegatan 11, Stockholm",
-      "resident_city": "Stockholm",
+      "issuing_jurisdiction": "SE-O",
+      "resident_address": "Kungsportsavenyen 21, Göteborg",
+      "resident_city": "Göteborg",
       "resident_country": "SE",
-      "resident_postal_code": "11353",
-      "resident_state": "Stockholm",
+      "resident_postal_code": "41136",
+      "resident_state": "Västra Götaland",
       "sex": 0,
       "driving_privileges": [
         {
           "vehicle_category_code": "B",
           "issue_date": "2024-01-01",
-          "expiry_date": "2033-01-01"
+          "expiry_date": "2033-01-01",
+          "codes": [
+            {
+              "code": "01",
+              "sign": "=",
+              "value": "corrective lenses"
+            }
+          ]
         }
       ],
       "un_distinguishing_sign": "S",
@@ -88,7 +79,16 @@
       "nationalities": [
         "SE"
       ],
-      "issue_date": "2024-01-01"
+      "issue_date": "2024-01-01",
+      "height": 178,
+      "weight": 76,
+      "eye_colour": "brown",
+      "hair_colour": "grey",
+      "portrait_capture_date": "2024-01-01T09:15:00Z",
+      "family_name_national_character": "Oldman",
+      "given_name_national_character": "Gary",
+      "signature_usual_mark": "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAFElEQVQYV2P8z8DwHwYGBgZGMAEADigBCCGZkB0AAAAASUVORK5CYII=",
+      "pseudonym_seed": "dXNlci0xMDItcHNldWRvbnltLXNlZWQtMDAwMDAwMDA="
     }
   }
 }
