@@ -94,8 +94,12 @@ identity", "Demo: Representation + company account").
 
 #### Minimal and `-full` documents
 
-Every type has its demo data in two sizes, so both the everyday case and a
-credential carrying every optional claim can be exercised:
+Every type has its demo data in two documents, and for every type but
+`diploma` the two are different sizes, so both the everyday case and a
+credential carrying every optional claim can be exercised. (`diploma` is the
+exception described below: its two documents are identical apart from the
+`-full` marker, because its data is an embedded W3C credential nobody has
+decided the shape of yet.)
 
 * the **minimal** document carries the claims the type's own metadata marks
   `mandatory`, plus the handful of optional claims this chart's demo surface
