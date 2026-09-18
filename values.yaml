@@ -160,6 +160,13 @@ issuer:
       #clientId: "demo-issuer-shared"
       issuerUrl: ""
       clientId: ""
+  # Enable attestation as client authentication (wallet to issuer)
+  walletAttestation:
+    enabled: false
+    mode: "esti"
+    # Optional SPOCP rules to restrict issuance based on scope/attestation source (non-standard)
+    policyRules: []
+  attachPseudonymSeed: false
   registry:
     # From the registry documentation: "SectionSize is the number of entries (decoys) per section."
     # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
@@ -170,6 +177,7 @@ issuer:
     adminGui:
       enabled: false
       username: "admin"
+  # Override path for credential/issuer metadata signing key
   signCertPath: "/sign-cert-chain/tls.crt"
   # Add extra files to the pod that will be mounted to /extra-files
   # extraFiles:
@@ -178,6 +186,8 @@ issuer:
     #   ...
     #   -----END CERTIFICATE-----
   extraFiles: {}
+  cors:
+    extraAllowedOrigins: []
   # Advanced usage - see docs/CONFIG_OVERRIDES.md
   configOverrides:
     registry:
@@ -194,10 +204,16 @@ issuer:
 
 verifier:
   enabled: true
-  # Set to "x509_san_dns", "x509_hash" or "did"
+  # Set to "x509_san_dns", "x509_hash" or "did" (used for verifier to wallet)
   clientIdScheme: "x509_san_dns"
   # If not set, defaults to "did:web:<verifier-hostname>" if clientIdScheme is "did"
   did: ""
+  # Enable attestation as client authentication (wallet to verifier)
+  walletAttestation:
+    enabled: false
+    mode: "esti"
+    # Optional SPOCP rules to restrict verification based on scope/attestation source (non-standard)
+    policyRules: []
   dcapi:
     enabled: false
     useJar: false
@@ -235,6 +251,7 @@ verifier:
   #       "*": "*"
   presentationRequestTemplates: {}
   presets: {}
+  # Override path for metadata/presentation request signing key
   signCertPath: "/sign-cert-chain/tls.crt"
   # Add extra files to the pod that will be mounted to /extra-files
   # extraFiles:

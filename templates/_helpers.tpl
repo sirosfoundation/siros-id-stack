@@ -556,6 +556,20 @@ api_auth:
 {{- end -}}
 {{- end -}}
 
+{{/* Renders wallet attestation configuration for issuer/verifier components.
+Expects configuration object as argument (ex: ".Values.issuer.walletAttestation") */}}
+{{- define "siros-id.vc.config.walletAttestation" -}}
+{{- if .enabled -}}
+wallet_attestation:
+  enabled: true
+  mode: {{ .mode | quote }}
+  {{- if .policyRules }}
+  policy:
+    rules: {{- .policyRules | toYamlPretty | nindent 6 }} 
+  {{- end }}
+{{- end -}}
+{{- end -}}
+
 {{/* Added for backwards compatibility with old image name */}}
 {{- define "siros-id.images.walletFrontend" -}}
 {{- if .Values.images.walletFrontendConfig -}}

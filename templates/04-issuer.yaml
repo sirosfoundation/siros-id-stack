@@ -71,6 +71,9 @@ apigw:
         - {{ include "siros-id.originFromUrl" .url }}
         {{- end }}
         {{- end }}
+        {{- range .Values.issuer.cors.extraAllowedOrigins }}
+        - {{ . | quote }}
+        {{- end }}
     trust_proxy_tls: true
     {{- include "siros-id.vc.config.apiAuth" . | nindent 4 }}
   key_config:
@@ -90,6 +93,7 @@ apigw:
           uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
           alt_text: Logotype for issuer
   {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
+  {{- include "siros-id.vc.config.walletAttestation" .Values.issuer.walletAttestation | nindent 2 }}
   identity_mapping_import:
     file_paths:
       {{- range $key, $value := .Values.issuer.identitymappingImport.identities }}
@@ -221,7 +225,7 @@ issuer:
   registry_client: {{- include "siros-id.vc.config.grpcClient" "issuer-registry" | nindent 4 }}
   mdoc:
     certificate_chain_path: {{ .Values.issuer.signCertPath }}
-  pseudonym_seed: true
+  pseudonym_seed: {{ .Values.issuer.attachPseudonymSeed }}
 {{- end -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
 

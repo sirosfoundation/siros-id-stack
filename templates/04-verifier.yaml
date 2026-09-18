@@ -36,6 +36,7 @@ verifier:
   {{- else }}
   client_id_scheme: {{ .Values.verifier.clientIdScheme | quote }}
   {{- end }}
+  {{- include "siros-id.vc.config.walletAttestation" .Values.verifier.walletAttestation | nindent 2 }}
   {{- if .Values.verifier.dcapi.enabled }}
   digital_credentials:
     enable: true
