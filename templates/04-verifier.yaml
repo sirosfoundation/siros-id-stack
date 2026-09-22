@@ -1,4 +1,5 @@
 {{- $ns := include "siros-id.namespace" . -}}
+{{- $hostnameVerifier := include "siros-id.hostname.verifier" . -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
 {{- define "siros-id.verifier.config.main.\"config.yaml\"" -}}
 {{- $hostnameVerifier := include "siros-id.hostname.verifier" . -}}
@@ -102,9 +103,10 @@ verifier:
 {{ include "siros-id.certificate" (list . (dict "name" "verifier-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
 
 ---
-{{ include "siros-id.certificate" (list . (dict "name" "verifier-sign" "ou" "signers"
-  "rotationPolicy" "Never" "usages" (list "digital signature")
-  "privateKeyAlgorithm" .Values.global.certManager.credentialSigning.privateKeyAlgorithm
+{{ include "siros-id.certificate" (list . (dict
+  "name" "verifier-sign" "literalSubject" (printf "CN=%s,OU=signers,O=siros-id" $hostnameVerifier)
+  "dnsNames" (list $hostnameVerifier) "usages" (list "digital signature" "content commitment")
+  "rotationPolicy" "Never" "privateKeyAlgorithm" .Values.global.certManager.credentialSigning.privateKeyAlgorithm
   "privateKeySize" .Values.global.certManager.credentialSigning.privateKeySize "duration" "8760h")) }}
 
 ---

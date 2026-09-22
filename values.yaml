@@ -382,10 +382,10 @@ mongoBackup:
 
 images:
   # Application images
-  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.7.3-sirosid.0"
-  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.7.3-sirosid.0"
-  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.3-sirosid.0"
-  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.3-sirosid.0"
+  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.7.20-sirosid.2-amd64"
+  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.7.20-sirosid.2-amd64"
+  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.20-sirosid.2-amd64"
+  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.20-sirosid.2-amd64"
   walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.15.0"
   walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.15.0"
   walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.5.0-1-sirosid.11"
