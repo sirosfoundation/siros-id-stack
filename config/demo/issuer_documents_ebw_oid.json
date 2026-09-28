@@ -15,15 +15,14 @@
             "attestation_legal_category": "PUB-EAA",
             "issuing_authority": "Bolagsverket",
             "issuing_country": "SE",
-            "date_of_expiry": "2027-12-31",
-            "trust_anchor": "https://trust.example.org/anchors/se/bolagsverket"
+            "date_of_expiry": "2027-12-31"
         }
     },
     "102": {
         "meta": {
             "authentic_source": "MockTaxAuthority",
             "scope": "ebw_oid",
-            "document_id": "document_id_ebw_oid_102",
+            "document_id": "document_id_ebw_oid_102-full",
             "created_at": "0001-01-01T00:00:00Z"
         },
         "identity_mapping_ids": [
