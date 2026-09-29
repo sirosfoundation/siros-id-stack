@@ -1,0 +1,118 @@
+{
+    "100": {
+        "meta": {
+            "authentic_source": "MockTaxAuthority",
+            "scope": "iban_ov",
+            "document_id": "document_id_iban_ov_100",
+            "created_at": "0001-01-01T00:00:00Z"
+        },
+        "identity_mapping_ids": [
+            "authentic_source_person_id_100"
+        ],
+        "document_data": {
+            "attestation_legal_category": "EAA",
+            "schema_version": "1.0",
+            "bank_account": {
+                "account_name": "Aurora Analytics AB - Main Account",
+                "iban": "SE4550000000058398257466",
+                "account_type": "CURRENT",
+                "account_currency": [
+                    "SEK"
+                ]
+            },
+            "account_ownership": {
+                "owner_type": "entity",
+                "owner_name": "Aurora Analytics AB",
+                "legal_person_identifiers": [
+                    {
+                        "type": "EUID",
+                        "value": "SEBOLAG.5591234567"
+                    },
+                    {
+                        "type": "TAX",
+                        "value": "SE559123456701"
+                    }
+                ],
+                "given_name": "Helen",
+                "surname": "Mirren"
+            },
+            "account_provider": {
+                "provider_name": "Skandinaviska Enskilda Banken AB",
+                "provider_country": "SWE",
+                "bic_swift": "ESSESESS",
+                "national_bank_code": "5000",
+                "clearing_number": "5000",
+                "nace_code": "64.19",
+                "legal_person_identifiers": [
+                    {
+                        "type": "LEI",
+                        "value": "F3JS33DEI6XQ4ZBPTN86"
+                    },
+                    {
+                        "type": "BIC",
+                        "value": "ESSESESS"
+                    }
+                ]
+            },
+            "trust_anchor_url": "https://trust.example.org/anchors/qtsp/eidas-tl"
+        }
+    },
+    "102": {
+        "meta": {
+            "authentic_source": "MockTaxAuthority",
+            "scope": "iban_ov",
+            "document_id": "document_id_iban_ov_102",
+            "created_at": "0001-01-01T00:00:00Z"
+        },
+        "identity_mapping_ids": [
+            "authentic_source_person_id_102"
+        ],
+        "document_data": {
+            "attestation_legal_category": "EAA",
+            "schema_version": "1.0",
+            "bank_account": {
+                "account_name": "Rheinmark Logistik GmbH - Main Account",
+                "iban": "DE89370400440532013000",
+                "account_type": "CURRENT",
+                "account_currency": [
+                    "EUR"
+                ]
+            },
+            "account_ownership": {
+                "owner_type": "entity",
+                "owner_name": "Rheinmark Logistik GmbH",
+                "legal_person_identifiers": [
+                    {
+                        "type": "EUID",
+                        "value": "DEHRB.B123456"
+                    },
+                    {
+                        "type": "TAX",
+                        "value": "DE811234567"
+                    }
+                ],
+                "given_name": "Gary",
+                "surname": "Oldman"
+            },
+            "account_provider": {
+                "provider_name": "Deutsche Bank AG",
+                "provider_country": "DEU",
+                "bic_swift": "DEUTDEDB",
+                "national_bank_code": "10070000",
+                "clearing_number": "10070000",
+                "nace_code": "64.19",
+                "legal_person_identifiers": [
+                    {
+                        "type": "LEI",
+                        "value": "7LTWFZYICNSX8D621K86"
+                    },
+                    {
+                        "type": "BIC",
+                        "value": "DEUTDEDB"
+                    }
+                ]
+            },
+            "trust_anchor_url": "https://trust.example.org/anchors/qtsp/eidas-tl"
+        }
+    }
+}

@@ -1,14 +1,112 @@
 {{- $ns := include "siros-id.namespace" . -}}
 {{- $hostnameVerifier := include "siros-id.hostname.verifier" . -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+{{- define "siros-id.verifier.config.main.\"config.yaml\"" -}}
+{{- $hostnameVerifier := include "siros-id.hostname.verifier" . -}}
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
 {{- $basePathWalletFrontend := include "siros-id.hostname.walletFrontendBasePath" . -}}
+common:
+  {{- include "siros-id.vc.config.mongo" (list . "verifier") | nindent 2 }}
+  secret_file_path: /secrets-rendered/secrets.yaml
+  production: {{ .Values.features.production }}
+  ha:
+    enable: true
+    cache_database_name: verifier_cache 
+  {{- include "siros-id.vc.config.tracing" . | nindent 2 }}
+  branding:
+    favicon_path: /branding-assets/favicon.png
+    logo_path: /branding-assets/logo.png
+  credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 4 }}
+verifier:
+  public_url: https://{{ $hostnameVerifier }}
+  api_server:
+    addr: ":8080"
+  key_config:
+    private_key_path: /sign-cert/tls.key
+    chain_path: {{ .Values.verifier.signCertPath }}
+  trust:
+    pdp_url: {{ .Values.pdp.externalUrl | quote }}
+  supported_wallets:
+    {{ include "siros-id.displayName" . | quote }}: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
+    {{- range .Values.features.extraWallets }}
+    {{ .displayName | quote }}: {{ .url }}/cb
+    {{- end }}
+  {{- if eq .Values.verifier.clientIdScheme "did" }}
+  client_id_scheme: did
+  did: {{ .Values.verifier.did | default (printf "did:web:%s" .Values.verifier.did) | quote }}
+  {{- else }}
+  client_id_scheme: {{ .Values.verifier.clientIdScheme | quote }}
+  {{- end }}
+  {{- include "siros-id.vc.config.walletAttestation" .Values.verifier.walletAttestation | nindent 2 }}
+  {{- if .Values.verifier.dcapi.enabled }}
+  digital_credentials:
+    enable: true
+    use_jar: {{ .Values.verifier.dcapi.useJar }}
+    {{- with .Values.verifier.dcapi.responseMode }}
+    response_mode: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.verifier.dcapi.deepLinkScheme }}
+    deep_link_scheme: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.verifier.zkCircuits.sources }}
+    zk_circuits:
+      sources: {{- toYamlPretty . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  inbound:
+    openid4vp:
+      token_endpoint: https://{{ $hostnameVerifier }}/token
+      clients:
+        "https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/":
+          type: public
+          redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
+          scopes: {{- include "siros-id.vc.credentialScopes" . | nindent 12 }}
+        {{- range .Values.features.extraWallets }}
+        {{ .url | urlquery | quote }}:
+          type: public
+          redirect_uri: {{ .url }}/cb
+          scopes: {{- include "siros-id.vc.credentialScopes" $ | nindent 12 }}
+        {{- end }}
+      presentation_requests_dir: /pres-reqs
+      {{- with .Values.features.credentialTypes }}
+      supported_credentials:
+        {{- range $id, $data := . }}
+        - vct: {{ $data.vct | quote }}
+          scopes:
+            - {{ $id | quote }}
+        {{- end }}
+      {{- end }}
+  {{- with .Values.verifier.presets }}
+  presets: {{ toYamlPretty . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.verifier.oidcProvider.enabled }}
+  outbound:
+    oidcProvider:
+      issuer: https://{{ $hostnameVerifier }}
+      subject_type: {{ .Values.verifier.oidcProvider.subjectType | quote }}
+      {{- with .Values.verifier.oidcProvider.staticClients }}
+      static_clients: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
+  {{- end }}
+{{- end -}}
+
+{{- define "siros-id.verifier.config.main.\"secrets.yaml.template\"" -}}
+verifier:
+  outbound:
+    oidcProvider:
+      subject_salt: ${oidcProvider_SUBJECT_SALT}
+{{- end -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+
+{{- if .Values.verifier.enabled -}}
 ---
 {{ include "siros-id.certificate" (list . (dict "name" "verifier-client" "ou" "clients" "usages" (list "digital signature" "client auth"))) }}
 
 ---
-{{ include "siros-id.certificate" (list . (dict "name" "verifier-sign" "ou" "signers"
-  "rotationPolicy" "Never" "usages" (list "digital signature")
-  "privateKeyAlgorithm" .Values.global.certManager.credentialSigning.privateKeyAlgorithm
+{{ include "siros-id.certificate" (list . (dict
+  "name" "verifier-sign" "literalSubject" (printf "CN=%s,OU=signers,O=siros-id" $hostnameVerifier)
+  "dnsNames" (list $hostnameVerifier) "usages" (list "digital signature" "content commitment")
+  "rotationPolicy" "Never" "privateKeyAlgorithm" .Values.global.certManager.credentialSigning.privateKeyAlgorithm
   "privateKeySize" .Values.global.certManager.credentialSigning.privateKeySize "duration" "8760h")) }}
 
 ---
@@ -39,71 +137,38 @@ metadata:
   {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
-  config.yaml: |
-    common:
-      {{- include "siros-id.vc.config.mongo" (list . "verifier") | nindent 6 }}
-      secret_file_path: /secrets-rendered/secrets.yaml
-      production: {{ .Values.features.production }}
-      ha:
-        enable: true
-        cache_database_name: verifier_cache 
-      {{- include "siros-id.vc.config.tracing" . | nindent 6 }}
-      branding:
-        favicon_path: /branding-assets/favicon.png
-        logo_path: /branding-assets/logo.png
-      credential_metadata: {{- include "siros-id.vc.credentialMetadata" . | nindent 8 }}
-    verifier:
-      public_url: https://{{ $hostnameVerifier }}
-      api_server:
-        addr: ":8080"
-      key_config:
-        private_key_path: /sign-cert/tls.key
-        chain_path: /sign-cert-chain/tls.crt
-      trust:
-        pdp_url: {{ .Values.pdp.externalUrl | quote }}
-      supported_wallets:
-        {{ include "siros-id.displayName" . }}: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
-        {{- range .Values.features.extraWallets }}
-        {{ .displayName | quote }}: {{ .url }}/cb
-        {{- end }}
-      inbound:
-        openid4vp:
-          token_endpoint: https://{{ $hostnameVerifier }}/token
-          clients:
-            "https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/":
-              type: public
-              redirect_uri: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
-              scopes: {{- include "siros-id.vc.credentialScopes" . | nindent 16 }}
-            {{- range .Values.features.extraWallets }}
-            {{ .url | urlquery | quote }}:
-              type: public
-              redirect_uri: {{ .url }}/cb
-              scopes: {{- include "siros-id.vc.credentialScopes" $ | nindent 16 }}
-            {{- end }}
-          presentation_requests_dir: /pres-reqs
-          {{- with .Values.features.credentialTypes }}
-          supported_credentials:
-            {{- range $id, $data := . }}
-            - vct: {{ $data.vct | quote }}
-              scopes:
-                - {{ $id | quote }}
-            {{- end }}
-          {{- end }}
-      {{- with .Values.verifier.presets }}
-      presets: {{ toYamlPretty . | nindent 8 }}
-      {{- end }}
-      {{- if .Values.verifier.oidc_provider.enabled }}
-      outbound:
-        oidc_provider:
-          issuer: https://{{ $hostnameVerifier }}
-          subject_type: pairwise
-          enable_userinfo: true
-      {{- end }}
-  secrets.yaml.template: |
-    verifier:
-      outbound:
-        oidc_provider:
-          subject_salt: ${OIDC_PROVIDER_SUBJECT_SALT}
+  config.yaml: | {{-
+    include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.verifier.config.main.\"config.yaml\""
+        (index .Values.verifier.configOverrides.main "config.yaml")
+      )
+    | nindent 4
+  }}
+  secrets.yaml.template: | {{-
+     include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.verifier.config.main.\"secrets.yaml.template\""
+        (index .Values.verifier.configOverrides.main "secrets.yaml.template")
+      )
+    | nindent 4
+  }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verifier-extra-files
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  .empty: "I am here so that the configmap won't ever be empty"
+  {{- range $key, $value := $.Values.verifier.extraFiles }}
+  {{ $key }}: | {{- $value | nindent 4 }}
+  {{- end }}
 
 ---
 apiVersion: apps/v1
@@ -149,6 +214,9 @@ spec:
         - name: sign-cert
           secret:
             secretName: verifier-sign-cert
+        - name: extra-files
+          configMap:
+            name: verifier-extra-files
         - name: sign-cert-chain
           emptyDir: {}
         - name: branding
@@ -181,7 +249,7 @@ spec:
               done
         {{- include "siros-id.secretsRendererInitContainer" (list . (dict
           "secretName" "verifier-main"
-          "envs" (dict "OIDC_PROVIDER_SUBJECT_SALT" "oidcProviderSubjectSalt"))) | nindent 8 }}
+          "envs" (dict "oidcProvider_SUBJECT_SALT" "oidcProviderSubjectSalt"))) | nindent 8 }}
       containers:
         - name: main
           image: {{ .Values.images.verifier | quote }}
@@ -218,6 +286,9 @@ spec:
               readOnly: true
             - name: client-cert
               mountPath: /client-cert
+              readOnly: true
+            - name: extra-files
+              mountPath: /extra-files
               readOnly: true
 
 ---
@@ -271,4 +342,6 @@ spec:
             except: {{- include "siros-id.reservedNetworks.v6" . | nindent 14 }}
 
 ---
-{{ include "siros-id.hostnameHttpRoute" (list . (dict "name" "verifier" "hostname" $hostnameVerifier)) }}
+{{ include "siros-id.hostnameHttpRoute"
+  (list . (dict "name" "verifier" "hostname" (include "siros-id.hostname.verifier" .))) }}
+{{- end -}}

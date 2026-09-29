@@ -13,10 +13,17 @@ global:
   certManager:
     # Use certManager to create issuers used for client certificates and credential signing
     createIssuers: true
-    clientCertificate:
+    common:
+      enabled: true
       issuerRef: common
     credentialSigning:
+      enabled: true
       issuerRef: creds
+      privateKeyAlgorithm: ECDSA
+      privateKeySize: 256
+    walletProvider:
+      enabled: true
+      issuerRef: wallet-provider
       privateKeyAlgorithm: ECDSA
       privateKeySize: 256
 
@@ -63,9 +70,13 @@ features:
   #   - displayName: "Foobar Inc. - Secondary"
   #     url: https://issuer-2.example.com
   #     clientId: "not-the-default-frontend-base-url"
+  #     visible: false
   # extraVerifiers:
   #   - displayName: "Foobar Inc."
   #     url: https://verifier.example.com
+  #   - displayName: "Foobar Inc. (test)"
+  #     url: https://verifier.example.com
+  #     visible: false
   extraIssuers: []
   extraVerifiers: []
   # Example configuration for extra wallets (used by verifier and issuer-apigw)
@@ -106,6 +117,8 @@ features:
   credentialTypes: {}
 
 pdp:
+  # WARNING: Only set disableTrustValidation to true for testing
+  disableTrustValidation: false
   # whitelist_template uses extraIssuers and extraVerifiers to build a URL whitelist
   # and ignores any other configuration.
   default_whitelist: true
@@ -113,8 +126,13 @@ pdp:
   # See go-trust config for more details.
   # https://github.com/sirosfoundation/go-trust/
   extraRegistries: {}
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    main:
+      "config.yaml": {}
 
 issuer:
+  enabled: true
   # max 1MB in total, use the API if you need more, since the feature is for quick testing.
   # !!! credentials are only added on initialization of the database !!!
   identitymappingImport:
@@ -142,15 +160,73 @@ issuer:
       #clientId: "demo-issuer-shared"
       issuerUrl: ""
       clientId: ""
+  # Enable attestation as client authentication (wallet to issuer)
+  walletAttestation:
+    enabled: false
+    mode: "esti"
+    # Optional SPOCP rules to restrict issuance based on scope/attestation source (non-standard)
+    policyRules: []
+  attachPseudonymSeed: false
   registry:
     # From the registry documentation: "SectionSize is the number of entries (decoys) per section."
     # Increasing/decreasing this value will affect required CPU/memory to generate decoy entries
     # and affect risk of information leakage.
     sectionSize: 1000000
+    # Default: 12 hours
+    tokenRefreshInterval: 43200
+    adminGui:
+      enabled: false
+      username: "admin"
+  # Override path for credential/issuer metadata signing key
+  signCertPath: "/sign-cert-chain/tls.crt"
+  # Add extra files to the pod that will be mounted to /extra-files
+  # extraFiles:
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+  extraFiles: {}
+  cors:
+    extraAllowedOrigins: []
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    registry:
+      main:
+        "config.yaml": {}
+        "secrets.yaml.template": {}
+    apigw:
+      main:
+        "config.yaml": {}
+        "secrets.yaml.template": {}
+    core:
+      main:
+        "config.yaml": {}
 
 verifier:
-  oidc_provider:
+  enabled: true
+  # Set to "x509_san_dns", "x509_hash" or "did" (used for verifier to wallet)
+  clientIdScheme: "x509_san_dns"
+  # If not set, defaults to "did:web:<verifier-hostname>" if clientIdScheme is "did"
+  did: ""
+  # Enable attestation as client authentication (wallet to verifier)
+  walletAttestation:
+    enabled: false
+    mode: "esti"
+    # Optional SPOCP rules to restrict verification based on scope/attestation source (non-standard)
+    policyRules: []
+  dcapi:
+    enabled: false
+    useJar: false
+    responseMode: "dc_api.jwt"
+    deepLinkScheme: ""
+  zkCircuits:
+    sources: []
+  oidcProvider:
     enabled: true
+    # Set to "pairwise" or "public"
+    subjectType: "pairwise"
+    # See: https://github.com/SUNET/vc/blob/main/docs/CONFIGURATION.md#static_clients-entry
+    staticClients: []
   # Example configuration for extra presentation request templates
   # presentationRequestTemplates:
   #   "demo_3-all":
@@ -175,8 +251,28 @@ verifier:
   #       "*": "*"
   presentationRequestTemplates: {}
   presets: {}
+  # Override path for metadata/presentation request signing key
+  signCertPath: "/sign-cert-chain/tls.crt"
+  # Add extra files to the pod that will be mounted to /extra-files
+  # extraFiles:
+    # external-sign-cert: |
+    #   -----BEGIN CERTIFICATE-----
+    #   ...
+    #   -----END CERTIFICATE-----
+  extraFiles: {}
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    main:
+      "config.yaml": {}
+      "secrets.yaml.template": {}
 
 walletBackend:
+  attestation:
+    # Set to "etsi" (no "iss" claim per requirements) or "ietf"
+    mode: etsi
+    # Include CA certificate in certificate chain for attestation JWTs
+    # (not permitted by some conformance tests).
+    includeCaCertificate: false
   # oidcGate uses the following redirectURI: https://<frontend-url>/id/<tenant-id>/oidc/cb
   # oidcGate:
   #   mode: "both"
@@ -209,6 +305,18 @@ walletBackend:
     - android:apk-key-hash:GQ2BxyCHKNHPJZNdbHXOS4qjaAyKmn2L/xrilXv4ivA
     - android:apk-key-hash:QjozcKdtxyF0wvpLJux1zAi4tQvQ0YjTvwQKtavKe3w
     - android:apk-key-hash:uVM73oLq5x4fV43U6MG9HnEstc4OJ709UEBfZDDO56I
+    - android:apk-key-hash:xAfybcO0yPlUA/Gko2tH6oIRb9Y+qa3uVtm0m/qW07Q
+    - android:apk-key-hash:xAfybcO0yPlUA_Gko2tH6oIRb9Y-qa3uVtm0m_qW07Q
+    - android:apk-key-hash:RlbwJAhVMvCUD1Ngog5qMZoLV1s4xr34SLaVCTnLsC8
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    server:
+      main:
+        "backend.yaml": {}
+        "registry.yaml": {}
+    configJob:
+      main:
+        "tenant.yaml": {}
 
 walletFrontend:
   basePath: ""
@@ -274,19 +382,19 @@ mongoBackup:
 
 images:
   # Application images
-  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.7.0-sirosid.1"
-  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.7.0-sirosid.1"
-  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.0-sirosid.1"
-  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.0-sirosid.1"
-  walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.12.0"
-  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.12.0"
-  walletFrontendConfig: "ghcr.io/sirosfoundation/wallet-frontend:0.5.0-1-sirosid.10"
-  pdp: "ghcr.io/sirosfoundation/go-trust:0.13.0"
-  walletFrontendNginx: "ghcr.io/nginx/nginx-unprivileged:1.31.2-alpine"
+  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.7.20-sirosid.3-amd64"
+  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.7.20-sirosid.3-amd64"
+  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.20-sirosid.3-amd64"
+  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.20-sirosid.3-amd64"
+  walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.22.3"
+  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.22.3"
+  walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.6.0"
+  pdp: "ghcr.io/sirosfoundation/go-trust:0.21.1"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
-  # Init/sidecar images
+  # Init/sidecar/shared images
   opsStackUtilities: "ghcr.io/sirosfoundation/ops_stack_utilities:0.2.1"
+  nginx: "ghcr.io/nginx/nginx-unprivileged:1.31.2-alpine"
   alpine: "docker.io/library/alpine:3.24"
   # MongoDB
   mongoCommunityVersion: "7.0.24"

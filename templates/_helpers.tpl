@@ -20,7 +20,7 @@ Define the hostnames for the tenant
 {{- .Values.hostnames.verifier | default (printf "%s.verifier.%s" .Values.tenant.id .Values.domain.root) -}}
 {{- end -}}
 {{- define "siros-id.hostname.walletBackend" -}}
-{{- .Values.hostnames.walletBackend | default (printf "backend.%s" .Values.domain.root) -}}
+{{- .Values.hostnames.walletBackend | default (printf "%s.wallet-backend.%s" .Values.tenant.id .Values.domain.root) -}}
 {{- end -}}
 {{- define "siros-id.hostname.walletFrontend" -}}
 {{- .Values.hostnames.walletFrontend | default (.Values.domain.root) -}}
@@ -69,7 +69,7 @@ annotations: {{- toYamlPretty . | nindent 2 }}
 {{- end -}}
 
 {{- define "siros-id.displayName" -}}
-{{- .Values.tenant.displayName | default (.Values.tenant.id) | quote -}}
+{{- .Values.tenant.displayName | default (.Values.tenant.id) -}}
 {{- end -}}
 
 {{- define "siros-id.originFromUrl" -}}
@@ -94,8 +94,12 @@ annotations: {{- toYamlPretty . | nindent 2 }}
 {{- $_ := required "You must define credential types in the value features.credentialTypes" .Values.features.credentialTypes -}}
 {{- range $id, $data := .Values.features.credentialTypes }}
 {{ $id | quote }}:
-  vctm_file_path: /vctms/{{ $id }}.json
   format: {{ $data.format }}
+  {{- if eq $data.format "mso_mdoc" }}
+  mddl_file_path: /vctms/{{ $id }}.json
+  {{- else }}
+  vctm_file_path: /vctms/{{ $id }}.json
+  {{- end }}
 {{- end }}
 {{- end -}}
 
@@ -185,7 +189,7 @@ Params:
 - (opt)dnsNames: The DNS names of the certificate (default: [name])
 - (opt)literalSubject: The literal subject (default: CN=<name>,OU=<ou>,O=siros-id)
 - (opt)secretName: The secret name (default: <name>-cert)
-- (opt)issuerRef: The issuer name (default: global.certManager.clientCertificate.issuerRef)
+- (opt)issuer: The issuer configuration object (default: global.certManager.common)
 - (opt)rotationPolicy: The private key rotation policy (default: Always)
 - (opt)duration: The duration of the certificate (default: 2160h)
 - (opt)privateKeyAlgorithm: The private key algorithm (default: ECDSA)
@@ -199,6 +203,7 @@ Params:
 {{ if (and (not $params.literalSubject) (not $params.ou)) -}}
 {{- fail "Certificate OU or literalSubject must be set" -}}
 {{- end -}}
+{{- if (or (not ($params.issuer)) ($params.issuer.enabled)) -}}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -225,9 +230,14 @@ spec:
     - {{ . | quote }}
     {{- end }}
   issuerRef:
-    name: {{ $params.issuerRef | default ($root.Values.global.certManager.clientCertificate.issuerRef) | quote }}
+    {{- if $params.issuer }}
+    name: {{ $params.issuer.issuerRef }}
+    {{- else }}
+    name: {{ $root.Values.global.certManager.common.issuerRef | quote }}
+    {{- end }}
     kind: Issuer
     group: cert-manager.io
+{{- end -}}
 {{- end -}}
 
 {{/* Generate a podDisruptionBudget template.
@@ -543,5 +553,89 @@ api_auth:
     client_id: {{ .Values.issuer.apiAuth.oidc.clientId | quote }}
     redirect_uri: {{ .Values.issuer.apiAuth.oidc.redirectUri | quote }}
     scopes: {{- toYamlPretty .Values.issuer.apiAuth.oidc.scopes | nindent 4 }}
+{{- end -}}
+{{- end -}}
+
+{{/* Renders wallet attestation configuration for issuer/verifier components.
+Expects configuration object as argument (ex: ".Values.issuer.walletAttestation") */}}
+{{- define "siros-id.vc.config.walletAttestation" -}}
+{{- if .enabled -}}
+wallet_attestation:
+  enabled: true
+  mode: {{ .mode | quote }}
+  {{- if .policyRules }}
+  policy:
+    rules: {{- .policyRules | toYamlPretty | nindent 6 }} 
+  {{- end }}
+{{- end -}}
+{{- end -}}
+
+{{/* Added for backwards compatibility with old image name */}}
+{{- define "siros-id.images.walletFrontend" -}}
+{{- if .Values.images.walletFrontendConfig -}}
+{{- .Values.images.walletFrontendConfig -}}
+{{- else -}}
+{{- .Values.images.walletFrontend -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "siros-id.verifiers" -}}
+{{- if .Values.verifier.enabled -}}
+{{-
+  concat
+    (list
+      (dict
+        "displayName" (include "siros-id.displayName" .)
+        "url" (printf "https://%s" (include "siros-id.hostname.verifier" .))
+      )
+    )
+    .Values.features.extraVerifiers
+  | toYamlPretty
+-}}
+{{- else if .Values.features.extraVerifiers -}}
+{{- .Values.features.extraVerifiers | toYamlPretty -}}
+{{- else -}}
+{{- fail "verifier.enabled or features.extraVerifiers is required" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "siros-id.issuers" -}}
+{{- if .Values.issuer.enabled -}}
+{{-
+  concat
+    (list
+      (dict
+        "displayName" (include "siros-id.displayName" .)
+        "url" (printf "https://%s" (include "siros-id.hostname.issuer" .))
+      )
+    )
+    .Values.features.extraIssuers
+  | toYamlPretty
+-}}
+{{- else if .Values.features.extraIssuers -}}
+{{- .Values.features.extraIssuers | toYamlPretty -}}
+{{- else -}}
+{{- fail "issuer.enabled or features.extraIssuers is required" -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Render templated YAML with optional overrides.
+See docs/CONFIG_OVERRIDES.md for more information.
+If no overrides are provided, render template directly without YAML deserialization since that
+could affect the order of keys as specified in the template.
+*/}}
+{{- define "siros-id.renderYamlWithOverrides" -}}
+{{- $root := index . 0 -}}
+{{- $template := index . 1 -}}
+{{- $overrides := index . 2 -}}
+{{- $renderedTemplate := include $template $root -}}
+{{- if not $overrides -}}
+{{- $renderedTemplate -}}
+{{- else -}}
+{{- $data := $renderedTemplate | fromYaml -}}
+{{- if $data.Error -}}
+{{- fail (printf "template \"%s\" did not render parseable YAML: %s" $template $data.Error) -}}
+{{- end -}}
+{{- mergeOverwrite $data (deepCopy $overrides) | toYamlPretty -}}
 {{- end -}}
 {{- end -}}

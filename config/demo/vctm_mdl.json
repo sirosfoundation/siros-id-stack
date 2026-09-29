@@ -1,0 +1,194 @@
+{
+  "format": "mso_mdoc",
+  "doctype": "org.iso.18013.5.1.mDL",
+  "display": [
+    {
+      "locale": "en-US",
+      "name": "mDL",
+      "description": "Mobile Driving Licence (ISO/IEC 18013-5)",
+      "background_color": "#1a365d",
+      "text_color": "#ffffff"
+    }
+  ],
+  "claims": {
+    "org.iso.18013.5.1": {
+      "family_name": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Family name" }]
+      },
+      "given_name": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Given name" }]
+      },
+      "birth_date": {
+        "mandatory": true,
+        "value_type": "full-date",
+        "display": [{ "locale": "en-US", "name": "Date of birth" }]
+      },
+      "issue_date": {
+        "mandatory": true,
+        "value_type": "full-date",
+        "display": [{ "locale": "en-US", "name": "Date of issue" }]
+      },
+      "expiry_date": {
+        "mandatory": true,
+        "value_type": "full-date",
+        "display": [{ "locale": "en-US", "name": "Expiry date" }]
+      },
+      "issuing_country": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Issuing country" }]
+      },
+      "issuing_authority": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Issuing authority" }]
+      },
+      "document_number": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Document number" }]
+      },
+      "portrait": {
+        "mandatory": true,
+        "value_type": "bstr",
+        "display": [{ "locale": "en-US", "name": "Portrait" }]
+      },
+      "un_distinguishing_sign": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Distinguishing sign" }]
+      },
+      "driving_privileges": {
+        "mandatory": true,
+        "value_type": "array",
+        "display": [{ "locale": "en-US", "name": "Driving privileges" }],
+        "elements": {
+          "vehicle_category_code": {
+            "mandatory": true,
+            "value_type": "tstr",
+            "display": [{ "locale": "en-US", "name": "Vehicle category" }]
+          },
+          "issue_date": {
+            "value_type": "full-date",
+            "display": [{ "locale": "en-US", "name": "Date of issue" }]
+          },
+          "expiry_date": {
+            "value_type": "full-date",
+            "display": [{ "locale": "en-US", "name": "Expiry date" }]
+          },
+          "codes": {
+            "value_type": "array",
+            "display": [{ "locale": "en-US", "name": "Codes" }],
+            "elements": {
+              "code": {
+                "mandatory": true,
+                "value_type": "tstr",
+                "display": [{ "locale": "en-US", "name": "Code" }]
+              },
+              "sign": {
+                "value_type": "tstr",
+                "display": [{ "locale": "en-US", "name": "Sign" }]
+              },
+              "value": {
+                "value_type": "tstr",
+                "display": [{ "locale": "en-US", "name": "Value" }]
+              }
+            }
+          }
+        }
+      },
+
+      "administrative_number": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Administrative number" }]
+      },
+      "sex": {
+        "value_type": "uint",
+        "display": [{ "locale": "en-US", "name": "Sex" }]
+      },
+      "height": {
+        "value_type": "uint",
+        "display": [{ "locale": "en-US", "name": "Height" }]
+      },
+      "weight": {
+        "value_type": "uint",
+        "display": [{ "locale": "en-US", "name": "Weight" }]
+      },
+      "eye_colour": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Eye colour" }]
+      },
+      "hair_colour": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Hair colour" }]
+      },
+      "birth_place": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Place of birth" }]
+      },
+      "resident_address": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Residential address" }]
+      },
+      "portrait_capture_date": {
+        "value_type": "tdate",
+        "display": [{ "locale": "en-US", "name": "Portrait capture date" }]
+      },
+      "age_in_years": {
+        "value_type": "uint",
+        "display": [{ "locale": "en-US", "name": "Age in years" }]
+      },
+      "age_birth_year": {
+        "value_type": "uint",
+        "display": [{ "locale": "en-US", "name": "Birth year" }]
+      },
+      "age_over_18": {
+        "value_type": "bool",
+        "display": [{ "locale": "en-US", "name": "Over 18" }]
+      },
+      "issuing_jurisdiction": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Issuing jurisdiction" }]
+      },
+      "nationalities": {
+        "value_type": "array",
+        "display": [{ "locale": "en-US", "name": "Nationalities" }]
+      },
+      "resident_city": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "City of residence" }]
+      },
+      "resident_state": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "State of residence" }]
+      },
+      "resident_postal_code": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Postal code" }]
+      },
+      "resident_country": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Country of residence" }]
+      },
+      "family_name_national_character": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Family name in national characters" }]
+      },
+      "given_name_national_character": {
+        "value_type": "tstr",
+        "display": [{ "locale": "en-US", "name": "Given name in national characters" }]
+      },
+      "signature_usual_mark": {
+        "value_type": "bstr",
+        "display": [{ "locale": "en-US", "name": "Signature or usual mark" }]
+      },
+      "pseudonym_seed": {
+        "value_type": "bstr"
+      }
+    }
+  }
+}

@@ -11,7 +11,7 @@ metadata:
   {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
 data:
   basePath: {{ $basePathWalletFrontend }}
-  displayName: {{ include "siros-id.displayName" . }}
+  displayName: {{ include "siros-id.displayName" . | quote}}
   rpId: {{ $hostnameWalletFrontend }}
   publicUrl: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}
   publicRedirectUrl: https://{{ $hostnameWalletFrontend }}{{ $basePathWalletFrontend }}/cb
@@ -87,7 +87,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: config-gen
-          image: {{ .Values.images.walletFrontendConfig | quote }}
+          image: {{ include "siros-id.images.walletFrontend" . | quote }}
           {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
           {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
           resources:
@@ -219,6 +219,10 @@ spec:
                   name: wallet-frontend-main
                   key: oidcGateOpUrl
             {{- end }}
+            - name: LOG_LEVEL
+              value: debug
+            - name: WIA_ENABLED
+              value: "true"
           command:
             - /bin/sh
             - -c
@@ -231,7 +235,7 @@ spec:
               /docker-entrypoint.d/nginx-security-headers-config.sh
       containers:
         - name: main
-          image: {{ .Values.images.walletFrontendNginx | quote }}
+          image: {{ .Values.images.nginx | quote }}
           {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
           {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
           resources:
