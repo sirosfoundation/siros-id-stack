@@ -1,6 +1,11 @@
 {{- $ns := include "siros-id.namespace" . -}}
 {{- $registryLayout := include "siros-id.walletBackend.registryConfigLayout" . -}}
 {{- $legacyRegistryOverrides := index .Values.walletBackend.configOverrides.server.main "registry.yaml" | default dict | deepCopy -}}
+{{- range $k := list "server" "logging" "http_client" -}}
+{{- if hasKey ($.Values.walletBackend.registryExtraConfig | default dict) $k -}}
+{{- fail (printf "walletBackend.registryExtraConfig.%s is not part of the registry: section any more; configure it in the backend config (walletBackend.configOverrides.server.main.\"backend.yaml\")" $k) -}}
+{{- end -}}
+{{- end -}}
 {{- if eq $registryLayout "integrated" -}}
 {{- if $legacyRegistryOverrides -}}
 {{- fail "walletBackend.configOverrides.server.main.\"registry.yaml\" is not used with registryConfigLayout=integrated; move its content to walletBackend.registryExtraConfig (registry: section layout, jwt.require_auth becomes require_auth)" -}}
@@ -113,11 +118,6 @@ A "jwt.require_auth" key in registryExtraConfig (old registry.yaml layout) is ma
 {{- $_ := set $extra "require_auth" (get $jwt "require_auth") -}}
 {{- end -}}
 {{- $_ := unset $extra "jwt" -}}
-{{- range $k := list "server" "logging" "http_client" -}}
-{{- if hasKey $extra $k -}}
-{{- fail (printf "walletBackend.registryExtraConfig.%s is not part of the registry: section any more; configure it in the backend config (walletBackend.configOverrides.server.main.\"backend.yaml\")" $k) -}}
-{{- end -}}
-{{- end -}}
 {{- if not $extra -}}
 {{- include "siros-id.walletBackend.registryConfigDefaults" . -}}
 {{- else -}}

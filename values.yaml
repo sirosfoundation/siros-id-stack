@@ -286,7 +286,7 @@ walletBackend:
   # is translated to the old registry.yaml (require_auth becomes jwt.require_auth) and merged
   # under configOverrides.server.main."registry.yaml" (which wins on conflicts).
   # An old-layout "jwt.require_auth" key is accepted and mapped to "require_auth"; server, logging
-  # and http_client are the backend's own settings (use configOverrides ... "backend.yaml").
+  # and http_client are the backend's own settings and are rejected in both layouts (use configOverrides ... "backend.yaml").
   # With require_auth: true the registry validates tokens through the shared go-tokenauth
   # validator (audience wallet-registry, JWKS derived from as.external_url).
   # registryExtraConfig:
