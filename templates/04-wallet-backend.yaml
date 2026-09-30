@@ -14,7 +14,8 @@
 {{- /* legacy layout: registryExtraConfig is written in registry: section layout; translate to registry.yaml */ -}}
 {{- $extra := deepCopy .Values.walletBackend.registryExtraConfig -}}
 {{- if hasKey $extra "require_auth" -}}
-{{- $_ := set $extra "jwt" (dict "require_auth" (get $extra "require_auth")) -}}
+{{- $oldJwt := get $extra "jwt" | default dict -}}
+{{- $_ := set $extra "jwt" (mergeOverwrite $oldJwt (dict "require_auth" (get $extra "require_auth"))) -}}
 {{- $_ := unset $extra "require_auth" -}}
 {{- end -}}
 {{- $embed := get $extra "image_embed" | default dict -}}
@@ -114,7 +115,8 @@ A "jwt.require_auth" key in registryExtraConfig (old registry.yaml layout) is ma
 {{- $defaults = fromYaml (include "siros-id.walletBackend.registryConfigDefaults" .) -}}
 {{- $extra := deepCopy (.Values.walletBackend.registryExtraConfig | default dict) -}}
 {{- $jwt := get $extra "jwt" | default dict -}}
-{{- if hasKey $jwt "require_auth" -}}
+{{- /* the new key wins over the deprecated jwt.require_auth */ -}}
+{{- if and (hasKey $jwt "require_auth") (not (hasKey $extra "require_auth")) -}}
 {{- $_ := set $extra "require_auth" (get $jwt "require_auth") -}}
 {{- end -}}
 {{- $_ := unset $extra "jwt" -}}
