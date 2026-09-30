@@ -267,6 +267,33 @@ verifier:
       "secrets.yaml.template": {}
 
 walletBackend:
+  # How the VCTM registry role of wallet-backend is configured.
+  #   legacy     (default) - a separate registry.yaml is rendered into the wallet-backend-main
+  #                          ConfigMap and passed with "-registry-config". Required for
+  #                          go-wallet-backend images WITHOUT sirosfoundation/go-wallet-backend#431.
+  #   integrated           - the registry settings are rendered as a "registry:" section of
+  #                          backend.yaml; no registry.yaml key and no "-registry-config" argument.
+  #                          Requires a go-wallet-backend image that includes #431 (the older
+  #                          binaries ignore the section and would start the registry with its
+  #                          built-in defaults). "-registry-config"/registry.yaml is a deprecated
+  #                          alias in the first release with #431 and removed in the next one.
+  # To switch: first deploy an image with #431 (images.walletBackend), then set "integrated".
+  # To roll back: set "legacy" again (before or together with reverting the image).
+  registryConfigLayout: legacy
+  # Extra registry settings, deep-merged over the chart defaults. Written in the layout of the
+  # backend "registry:" section (source, sources, cache, dynamic_cache, image_embed, filter,
+  # rate_limit, require_auth). With "integrated" it is merged into that section; with "legacy" it
+  # is translated to the old registry.yaml (require_auth becomes jwt.require_auth) and merged
+  # under configOverrides.server.main."registry.yaml" (which wins on conflicts).
+  # An old-layout "jwt.require_auth" key is accepted and mapped to "require_auth"; server, logging
+  # and http_client are the backend's own settings and are rejected in both layouts (use configOverrides ... "backend.yaml").
+  # With require_auth: true the registry validates tokens through the shared go-tokenauth
+  # validator (audience wallet-registry, JWKS derived from as.external_url).
+  # registryExtraConfig:
+  #   require_auth: true
+  #   filter:
+  #     exclude_patterns: ["urn:test:*"]
+  registryExtraConfig: {}
   attestation:
     # Set to "etsi" (no "iss" claim per requirements) or "ietf"
     mode: etsi
@@ -313,6 +340,7 @@ walletBackend:
     server:
       main:
         "backend.yaml": {}
+        # Only used with registryConfigLayout=legacy (old registry.yaml layout)
         "registry.yaml": {}
     configJob:
       main:
