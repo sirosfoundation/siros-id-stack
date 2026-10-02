@@ -1,0 +1,11 @@
+# Test/example overlay: enables the eMRTD document signer registry on the PDP.
+# Use together with example-tenant.yaml (and optionally values-demo.yaml):
+#   helm template t . -f values-demo.yaml -f example-tenant.yaml -f ci/values-emrtd.yaml
+# The image reference and secret name below are placeholders, replace them in a real deployment.
+pdp:
+  emrtd:
+    enabled: true
+    anchors:
+      image: "ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+      pullSecrets:
+        - ghcr-emrtd-read

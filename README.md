@@ -47,6 +47,7 @@ The following must be set in your values overlays (the chart defaults alone are 
   * "family_name": "Oldman"
   * "given_name": "Gary"
 * example-tenant.yaml - example with required values defined
+* ci/values-emrtd.yaml - overlay that enables the eMRTD document signer registry on the PDP (placeholder image)
 * config/demo - demo credentials, documents and identities
 * quickstart - example values and scripts
 
@@ -96,6 +97,89 @@ Note that documents are imported only when the datastore is initialised. An
 environment that already holds data will not pick up a new credential type on
 upgrade - clear the datastore, or add the documents through the issuer API
 (see `quickstart/add-documents.sh`).
+
+## eMRTD document signer trust (PDP)
+The PDP ([go-trust](https://github.com/sirosfoundation/go-trust)) can answer one extra question for a policy
+enforcement point (PEP) that has already verified an electronic passport or ID card chip: *does the Document
+Signer Certificate (DSC) chain, for the claimed issuing state, to a reviewed CSCA anchor?* This is the `emrtd`
+registry, available from go-trust 0.24.0. The feature is **disabled by default**; with `pdp.emrtd.enabled: false`
+the rendered PDP is unchanged.
+
+When enabled, the chart renders `registries.emrtd` and the policy `policies.policies.emrtd-document-signer`
+(`require_key_binding: true`, `allowed_key_types: [x5c]`) into the PDP configuration, and adds an init container that
+copies the reviewed anchors from a data-only image into an `emptyDir` mounted read-only at `/emrtd`
+(`anchors_dir: /emrtd/anchors`, `crls_dir: /emrtd/crls`). Existing actions (`pid-provider`, `verifier`, ...) keep being
+decided by their own registries; no `default_policy` is set.
+
+### Values
+| value | default | meaning |
+|---|---|---|
+| `pdp.emrtd.enabled` | `false` | Render the registry, policy, init container and volume |
+| `pdp.emrtd.registryName` | `emrtd-csca` | Registry name, referenced by the policy |
+| `pdp.emrtd.description` | `eMRTD CSCA anchors` | Free text |
+| `pdp.emrtd.pathLenMode` | `""` | `ignore` or `enforce` (RFC 5280 `pathLenConstraint`); empty keeps go-trust's default (ignore) |
+| `pdp.emrtd.pathLenOverride` | `null` | Integer >= 0, used instead of each certificate's own limit; implies `enforce`, not valid with `ignore` |
+| `pdp.emrtd.watch` | `true` | Reload on file changes. Here the data only changes when the pod is replaced |
+| `pdp.emrtd.anchors.image` | `""` | **Required when enabled.** `repository:tag` or `repository@sha256:...` |
+| `pdp.emrtd.anchors.pullPolicy` | `""` | Defaults to `global.imagePullPolicy` |
+| `pdp.emrtd.anchors.pullSecrets` | `[]` | Secret names (not created by the chart) for pulling the anchors image, merged with `global.imagePullSecrets` |
+| `pdp.emrtd.anchors.resources` | small requests/limits | Init container resources; keep them within the pod-level `resources.pdp` |
+| `pdp.emrtd.crls.enabled` | `true` | Set `crls_dir`. Without it no revocation check is made |
+
+Misconfiguration fails at `helm template` time: a missing anchors image, `images.pdp` older than 0.24.0 (when the tag
+parses as semver), an invalid `pathLenMode`, a `pathLenOverride` combined with `ignore`, or `pdp.extraRegistries`
+defining its own `emrtd`. Types and unknown keys under `pdp.emrtd` are checked by `values.schema.json`.
+Extra policies can still be added through `pdp.configOverrides` (maps are merged, see
+[docs/CONFIG_OVERRIDES.md](docs/CONFIG_OVERRIDES.md)). A test overlay is in `ci/values-emrtd.yaml`.
+
+### Publishing and pinning the anchors image
+The anchors are released by the `emrtd-trust-anchors` repository as the **private** container image
+`ghcr.io/sirosfoundation/emrtd-trust-anchors`, tagged `vYYYY.MM.DD.N`. Each release records its immutable digest in
+the release notes. Pin the digest, and raise the pin in a reviewed change for every release (including revocations):
+```yaml
+pdp:
+  emrtd:
+    enabled: true
+    anchors:
+      image: ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest from the release notes>
+      pullSecrets: [ghcr-emrtd-read]
+```
+Changing the image changes the pod spec, so the PDP is rolled and the init container installs the new content.
+Configuration changes are handled by Reloader as for the rest of the PDP. After each rollout check the PDP log line
+`emrtd anchors loaded` for the number of countries and anchors actually loaded.
+
+### Pull secret for the private package
+Pulling needs a credential with `read:packages` (GHCR does not accept fine-grained tokens; use a classic token of a
+dedicated machine user). Create the secret in the tenant namespace, with a token from your secret store:
+```bash
+kubectl create secret docker-registry ghcr-emrtd-read \
+  --namespace <tenant-namespace> \
+  --docker-server=ghcr.io \
+  --docker-username=<machine-user> \
+  --docker-password="$GHCR_READ_TOKEN"
+```
+and list its name in `pdp.emrtd.anchors.pullSecrets` (or in `global.imagePullSecrets`).
+
+### Pointing the PEP (facetec-api) at the PDP
+The PEP calls the AuthZEN endpoint `POST /evaluation` of the PDP with action name `emrtd-document-signer`, subject
+`{"type": "key", "id": "<ISSUING STATE ALPHA-3>"}` and resource `{"type": "x5c", "id": "<same>", "key": ["<DSC base64 DER>", ...]}`.
+For facetec-api: set `TRUST_PDP_URL` to the PDP base URL, use the action name `emrtd-document-signer`, and set
+`trust.required` so that anything other than `decision: true` (including errors and timeouts) is not trusted. Inside
+this cluster the PDP is `http://pdp.<tenant-namespace>.svc.<clusterDomain>`.
+
+### Open points
+* **The PDP is not exposed and has no authentication.** No ingress or HTTPRoute exists for it, and this chart adds
+  none. The PDP NetworkPolicy admits only wallet-backend, verifier and issuer-apigw. A facetec-api that runs inside
+  the cluster needs an additional ingress rule for its pods; one that runs outside needs a path to the PDP that the
+  operator secures (private network, network policy, or a gateway with its own authentication in front, since facetec-api's
+  PDP client sends no credentials). Neither is chart behaviour.
+* The PDP answers with certificate fingerprints and subjects in `context.reason.admin`; this is meant for service
+  callers and must not be passed on to end users.
+* `signing_time` is taken on the caller's word: the PEP must derive it from a verified SOD.
+* go-trust 0.23.0 enables rate limiting (100 requests/s per peer address, burst 10) and keys it on the peer address;
+  a gateway in front of the PDP shares one bucket unless `security.trusted_proxies` is set (via `pdp.configOverrides`).
+* The anchors are copied once per pod start; a revocation reaches the PDP only when the pin is changed and the pod is rolled.
+* The data is for internal trust evaluation only (see the licence notice in the image).
 
 ## Deployment Examples
 Example of templating with local chart:

@@ -126,6 +126,47 @@ pdp:
   # See go-trust config for more details.
   # https://github.com/sirosfoundation/go-trust/
   extraRegistries: {}
+  # eMRTD document signer trust: decides whether the Document Signer Certificate (DSC) of a
+  # passport/ID chip chains to a reviewed CSCA anchor of the claimed issuing state. Needs go-trust
+  # >= 0.24.0 (images.pdp). DISABLED by default: nothing below changes the rendered PDP until
+  # enabled is true. The PDP is cluster-internal only; this chart never exposes it publicly.
+  # See "eMRTD document signer trust (PDP)" in README.md.
+  emrtd:
+    enabled: false
+    # Registry name, referenced by the policy. go-trust default is "emrtd-csca".
+    registryName: "emrtd-csca"
+    description: "eMRTD CSCA anchors"
+    # Path length handling of the policy "emrtd-document-signer" (go-trust docs/EMRTD.md).
+    # Both are opt-in; leave empty/null for go-trust's default (ignore pathLenConstraint).
+    #   pathLenMode: "" | "ignore" | "enforce"
+    #   pathLenOverride: integer >= 0, implies enforce (not valid together with "ignore")
+    pathLenMode: ""
+    pathLenOverride: null
+    # Reload anchors/CRLs on file changes. In this chart the data only changes when the pod is
+    # replaced (init container), so this is mostly a safety net.
+    watch: true
+    anchors:
+      # REQUIRED when enabled. Data-only image with the exported anchors at /anchors and /crls.
+      # PRIVATE package, pulling needs a read:packages credential (see pullSecrets). Pin by digest:
+      #   ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest from the release notes>
+      # or at least by release tag: ghcr.io/sirosfoundation/emrtd-trust-anchors:v2026.10.02.1
+      image: ""
+      # Defaults to global.imagePullPolicy
+      pullPolicy: ""
+      # Names of Secrets (type kubernetes.io/dockerconfigjson) used to pull the anchors image.
+      # Merged with global.imagePullSecrets for the PDP pod. The Secrets are not created by this chart.
+      pullSecrets: []
+      # Init container resources. The PDP uses pod-level resources (resources.pdp), keep these within it.
+      resources:
+        requests:
+          cpu: 5m
+          memory: 8M
+        limits:
+          cpu: 20m
+          memory: 32M
+    crls:
+      # Also install /crls from the image and set crls_dir (revocation checks). Without it no CRL is consulted.
+      enabled: true
   # Advanced usage - see docs/CONFIG_OVERRIDES.md
   configOverrides:
     main:
@@ -389,7 +430,7 @@ images:
   walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.22.3"
   walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.22.3"
   walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.6.0"
-  pdp: "ghcr.io/sirosfoundation/go-trust:0.21.1"
+  pdp: "ghcr.io/sirosfoundation/go-trust:0.24.0"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
   # Init/sidecar/shared images
