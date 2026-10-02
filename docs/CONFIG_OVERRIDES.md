@@ -15,17 +15,3 @@ serialized into YAML again) - if a value exist in both, the override will take p
 
 The same limitations exists as when supplying multiple values files in Helm: lists/arrays can not
 be merged, their content will be replaced by the one defined in the override.
-
-### Example: an extra PDP policy next to the eMRTD policy
-The overrides are merged into the rendered configuration, so keys the chart renders (for example
-`policies.policies.emrtd-document-signer` when `pdp.emrtd.enabled` is true) stay in place unless you set the same key:
-```yaml
-pdp:
-  configOverrides:
-    main:
-      "config.yaml":
-        policies:
-          policies:
-            my-extra:
-              registries: [Static-Allowlist]
-```

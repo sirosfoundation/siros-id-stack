@@ -1,0 +1,9 @@
+{{- if .Values.pdpEmrtd.enabled }}
+{{- $img := .Values.pdpEmrtd.anchors.image }}
+{{- if not (contains "@sha256:" $img) }}
+WARNING: pdpEmrtd.anchors.image ({{ $img }}) is not pinned by digest. A tag can be moved; the trust anchors
+decide which passports are accepted. Pin ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest from the release notes>.
+{{- end }}
+The eMRTD PDP is Service "pdp-emrtd" (ClusterIP, http, no authentication). facetec-api only accepts an https
+TRUST_PDP_URL: put TLS in front of the Service (gateway/mesh) or run the PDP as a loopback sidecar. See README.md.
+{{- end }}

@@ -1,0 +1,226 @@
+{{- /* Dedicated eMRTD document signer PDP. Rendered only when pdpEmrtd.enabled. See README.md. */ -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+{{- /* Validate the values early so misconfiguration fails at render time. */ -}}
+{{- define "siros-id.pdpEmrtd.validate" -}}
+{{- $e := .Values.pdpEmrtd -}}
+{{- $image := $e.image | default .Values.images.pdp -}}
+{{- $_ := required "pdpEmrtd.anchors.image is required when pdpEmrtd.enabled is true (e.g. ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest>)" $e.anchors.image -}}
+{{- $_ := required "pdpEmrtd.registryName must not be empty" $e.registryName -}}
+{{- if not $e.networkPolicy.allowFrom -}}
+{{- fail "pdpEmrtd.networkPolicy.allowFrom is required when pdpEmrtd.enabled is true: name the peers (pod/namespace selectors, ipBlock) allowed to call the eMRTD PDP, e.g. facetec-api" -}}
+{{- end -}}
+{{- if not (has $e.pathLenMode (list "" "ignore" "enforce")) -}}
+{{- fail (printf "pdpEmrtd.pathLenMode must be \"\", \"ignore\" or \"enforce\", got %q" $e.pathLenMode) -}}
+{{- end -}}
+{{- if and (ne (kindOf $e.pathLenOverride) "invalid") (eq $e.pathLenMode "ignore") -}}
+{{- fail "pdpEmrtd.pathLenOverride implies enforce and cannot be combined with pdpEmrtd.pathLenMode \"ignore\"" -}}
+{{- end -}}
+{{- if and (ne (kindOf $e.pathLenOverride) "invalid") (lt (int64 $e.pathLenOverride) 0) -}}
+{{- fail "pdpEmrtd.pathLenOverride must be >= 0" -}}
+{{- end -}}
+{{- /* The emrtd registry first exists in go-trust 0.24.0. Only tags that parse as semver are checked,
+       digest-only and custom tags are the operator's responsibility. */ -}}
+{{- $ref := splitList "@" $image | first -}}
+{{- $last := splitList "/" $ref | last -}}
+{{- if contains ":" $last -}}
+{{- $tag := splitList ":" $last | last | trimPrefix "v" -}}
+{{- if and (regexMatch "^[0-9]+\\.[0-9]+\\.[0-9]+" $tag) (not (semverCompare ">= 0.24.0-0" $tag)) -}}
+{{- fail (printf "pdpEmrtd.enabled requires go-trust >= 0.24.0 (the emrtd registry), the image is %q" $image) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+{{- define "siros-id.pdpEmrtd.config.main.\"config.yaml\"" -}}
+{{- $e := .Values.pdpEmrtd -}}
+server:
+  host: "0.0.0.0"
+  port: 8080
+  external_url: {{ $e.externalUrl }}
+logging:
+  level: {{ $e.logging.level | quote }}
+  format: {{ $e.logging.format | quote }}
+{{- if $e.trustedProxies }}
+security:
+  trusted_proxies: {{- toYamlPretty $e.trustedProxies | nindent 4 }}
+{{- end }}
+registries:
+  emrtd:
+    enabled: true
+    name: {{ $e.registryName | quote }}
+    {{- if $e.description }}
+    description: {{ $e.description | quote }}
+    {{- end }}
+    anchors_dir: /emrtd/anchors
+    {{- if $e.crls.enabled }}
+    crls_dir: /emrtd/crls
+    {{- end }}
+    watch: {{ $e.watch }}
+policies:
+  # This PDP knows exactly one action, anything else is denied.
+  fail_closed_on_unknown_action: true
+  policies:
+    emrtd-document-signer:
+      registries:
+        - {{ $e.registryName | quote }}
+      constraints:
+        require_key_binding: true
+        allowed_key_types:
+          - x5c
+      {{- if or $e.pathLenMode (ne (kindOf $e.pathLenOverride) "invalid") }}
+      emrtd:
+        {{- if $e.pathLenMode }}
+        path_len_mode: {{ $e.pathLenMode | quote }}
+        {{- end }}
+        {{- if ne (kindOf $e.pathLenOverride) "invalid" }}
+        path_len_override: {{ int64 $e.pathLenOverride }}
+        {{- end }}
+      {{- end }}
+{{- end -}}
+{{- /* ------------------------------------------------------------------------------------- */ -}}
+{{- if .Values.pdpEmrtd.enabled -}}
+{{- include "siros-id.pdpEmrtd.validate" . -}}
+{{- $ns := include "siros-id.namespace" . -}}
+{{- $e := .Values.pdpEmrtd -}}
+{{- $image := $e.image | default .Values.images.pdp -}}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pdp-emrtd-main
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+data:
+  config.yaml: | {{-
+    include "siros-id.renderYamlWithOverrides"
+      (list
+        .
+        "siros-id.pdpEmrtd.config.main.\"config.yaml\""
+        (index $e.configOverrides.main "config.yaml")
+      )
+    | nindent 4
+  }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdp-emrtd
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict "reloader.stakater.com/auto" "true")) | nindent 2 }}
+spec:
+  replicas: {{ $e.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pdp-emrtd
+  template:
+    metadata:
+      {{- include "siros-id.labels" (list . (dict "app.kubernetes.io/name" "pdp-emrtd")) | nindent 6 }}
+    spec:
+      {{- include "siros-id.topologySpreadConstraints" (list . "pdp-emrtd") | nindent 6 }}
+      {{- $pullSecrets := list }}
+      {{- range .Values.global.imagePullSecrets }}
+      {{- $pullSecrets = append $pullSecrets . }}
+      {{- end }}
+      {{- range $e.anchors.pullSecrets }}
+      {{- $pullSecrets = append $pullSecrets (dict "name" .) }}
+      {{- end }}
+      {{- with ($pullSecrets | uniq) }}
+      imagePullSecrets: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: false
+      {{- include "siros-id.podSecurityContext" (dict "runAsUser" 65532) | nindent 6 }}
+      resources:
+        {{- toYamlPretty $e.resources | nindent 8 }}
+      volumes:
+        - name: main-config
+          configMap:
+            name: pdp-emrtd-main
+        - name: emrtd
+          emptyDir: {}
+      initContainers:
+        # Copies the reviewed eMRTD CSCA anchors (and CRLs) from the data-only image into the shared emptyDir.
+        - name: emrtd-anchors
+          image: {{ $e.anchors.image | quote }}
+          {{- with ($e.anchors.pullPolicy | default .Values.global.imagePullPolicy) }}
+          imagePullPolicy: {{ . | quote }}
+          {{- end }}
+          {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          env:
+            - name: TARGET
+              value: /emrtd
+          volumeMounts:
+            - name: emrtd
+              mountPath: /emrtd
+          resources:
+            {{- toYamlPretty $e.anchors.resources | nindent 12 }}
+      containers:
+        - name: main
+          image: {{ $image | quote }}
+          {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
+          {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
+          ports:
+            - name: http-main
+              containerPort: 8080
+          {{- include "siros-id.httpProbes" (dict "path" "/healthz" "port" "http-main" "readyPath" "/readyz") | nindent 10 }}
+          volumeMounts:
+            - name: main-config
+              mountPath: /main-config
+              readOnly: true
+            - name: emrtd
+              mountPath: /emrtd
+              readOnly: true
+          args:
+            - --config
+            - /main-config/config.yaml
+
+---
+{{ include "siros-id.podDisruptionBudget" (list . (dict "name" "pdp-emrtd" "minAvailable" $e.podDisruptionBudget.minAvailable)) }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdp-emrtd
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  selector:
+    app.kubernetes.io/name: pdp-emrtd
+  {{- with .Values.global.service.trafficDistribution }}
+  trafficDistribution: {{ . }}
+  {{- end }}
+  ports:
+    - name: http-main
+      port: 80
+      targetPort: 8080
+
+---
+# Deny by default: ingress only from pdpEmrtd.networkPolicy.allowFrom, no egress at all
+# (the anchors are local files; the registry makes no outbound requests).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pdp-emrtd
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: pdp-emrtd
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        {{- toYamlPretty $e.networkPolicy.allowFrom | nindent 8 }}
+      ports:
+        - port: http-main
+  egress: []
+{{- end -}}

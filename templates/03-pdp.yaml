@@ -1,37 +1,5 @@
 {{- $ns := include "siros-id.namespace" . -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
-{{- /* eMRTD document signer trust: validate the values early so misconfiguration fails at render time. */ -}}
-{{- define "siros-id.pdp.emrtd.validate" -}}
-{{- $e := .Values.pdp.emrtd -}}
-{{- if $e.enabled -}}
-{{- $_ := required "pdp.emrtd.anchors.image is required when pdp.emrtd.enabled is true (e.g. ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest>)" $e.anchors.image -}}
-{{- $_ := required "pdp.emrtd.registryName must not be empty" $e.registryName -}}
-{{- if and .Values.pdp.extraRegistries (hasKey .Values.pdp.extraRegistries "emrtd") -}}
-{{- fail "pdp.extraRegistries must not define \"emrtd\" when pdp.emrtd.enabled is true; use pdp.emrtd or pdp.configOverrides" -}}
-{{- end -}}
-{{- if not (has $e.pathLenMode (list "" "ignore" "enforce")) -}}
-{{- fail (printf "pdp.emrtd.pathLenMode must be \"\", \"ignore\" or \"enforce\", got %q" $e.pathLenMode) -}}
-{{- end -}}
-{{- if and (ne (kindOf $e.pathLenOverride) "invalid") (eq $e.pathLenMode "ignore") -}}
-{{- fail "pdp.emrtd.pathLenOverride implies enforce and cannot be combined with pdp.emrtd.pathLenMode \"ignore\"" -}}
-{{- end -}}
-{{- if and (ne (kindOf $e.pathLenOverride) "invalid") (lt (int64 $e.pathLenOverride) 0) -}}
-{{- fail "pdp.emrtd.pathLenOverride must be >= 0" -}}
-{{- end -}}
-{{- /* The emrtd registry first exists in go-trust 0.24.0. Only tags that parse as semver are checked,
-       digest-only and custom tags are the operator's responsibility. */ -}}
-{{- $ref := splitList "@" .Values.images.pdp | first -}}
-{{- $last := splitList "/" $ref | last -}}
-{{- if contains ":" $last -}}
-{{- $tag := splitList ":" $last | last | trimPrefix "v" -}}
-{{- if and (regexMatch "^[0-9]+\\.[0-9]+\\.[0-9]+" $tag) (not (semverCompare ">= 0.24.0-0" $tag)) -}}
-{{- fail (printf "pdp.emrtd.enabled requires go-trust >= 0.24.0 (the emrtd registry), images.pdp is %q" .Values.images.pdp) -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- include "siros-id.pdp.emrtd.validate" . -}}
-{{- /* ------------------------------------------------------------------------------------- */ -}}
 {{- define "siros-id.pdp.config.main.\"config.yaml\"" -}}
 {{- $verifiers := include "siros-id.verifiers" . | fromYamlArray -}}
 {{- $issuers := include "siros-id.issuers" . | fromYamlArray -}}
@@ -88,43 +56,6 @@ registries:
       {{- end }}
   {{- end }}
   {{- end }}
-  {{- with .Values.pdp.emrtd }}
-  {{- if .enabled }}
-  emrtd:
-    enabled: true
-    name: {{ .registryName | quote }}
-    {{- if .description }}
-    description: {{ .description | quote }}
-    {{- end }}
-    anchors_dir: /emrtd/anchors
-    {{- if .crls.enabled }}
-    crls_dir: /emrtd/crls
-    {{- end }}
-    watch: {{ .watch }}
-  {{- end }}
-  {{- end }}
-{{- if .Values.pdp.emrtd.enabled }}
-policies:
-  policies:
-    emrtd-document-signer:
-      registries:
-        - {{ .Values.pdp.emrtd.registryName | quote }}
-      constraints:
-        require_key_binding: true
-        allowed_key_types:
-          - x5c
-      {{- $mode := .Values.pdp.emrtd.pathLenMode }}
-      {{- $override := .Values.pdp.emrtd.pathLenOverride }}
-      {{- if or $mode (ne (kindOf $override) "invalid") }}
-      emrtd:
-        {{- if $mode }}
-        path_len_mode: {{ $mode | quote }}
-        {{- end }}
-        {{- if ne (kindOf $override) "invalid" }}
-        path_len_override: {{ int64 $override }}
-        {{- end }}
-      {{- end }}
-{{- end }}
 {{- end -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
 
@@ -165,20 +96,7 @@ spec:
       {{- include "siros-id.labels" (list . (dict "app.kubernetes.io/name" "pdp")) | nindent 6 }}
     spec:
       {{- include "siros-id.topologySpreadConstraints" (list . "pdp") | nindent 6 }}
-      {{- if .Values.pdp.emrtd.enabled }}
-      {{- $pullSecrets := list }}
-      {{- range .Values.global.imagePullSecrets }}
-      {{- $pullSecrets = append $pullSecrets . }}
-      {{- end }}
-      {{- range .Values.pdp.emrtd.anchors.pullSecrets }}
-      {{- $pullSecrets = append $pullSecrets (dict "name" .) }}
-      {{- end }}
-      {{- with ($pullSecrets | uniq) }}
-      imagePullSecrets: {{- toYamlPretty . | nindent 8 }}
-      {{- end }}
-      {{- else }}
       {{- include "siros-id.imagePullSecrets" . | nindent 6 }}
-      {{- end }}
       automountServiceAccountToken: false
       {{- include "siros-id.podSecurityContext" (dict "runAsUser" 65532) | nindent 6 }}
       resources:
@@ -187,30 +105,6 @@ spec:
         - name: main-config
           configMap:
             name: pdp-main
-        {{- if .Values.pdp.emrtd.enabled }}
-        - name: emrtd
-          emptyDir: {}
-        {{- end }}
-      {{- if .Values.pdp.emrtd.enabled }}
-      initContainers:
-        # Copies the reviewed eMRTD CSCA anchors (and CRLs) from the data-only image into the shared emptyDir.
-        - name: emrtd-anchors
-          image: {{ .Values.pdp.emrtd.anchors.image | quote }}
-          {{- with (.Values.pdp.emrtd.anchors.pullPolicy | default .Values.global.imagePullPolicy) }}
-          imagePullPolicy: {{ . | quote }}
-          {{- end }}
-          {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-          env:
-            - name: TARGET
-              value: /emrtd
-          volumeMounts:
-            - name: emrtd
-              mountPath: /emrtd
-          resources:
-            {{- toYamlPretty .Values.pdp.emrtd.anchors.resources | nindent 12 }}
-      {{- end }}
       containers:
         - name: main
           image: {{ .Values.images.pdp | quote }}
@@ -224,11 +118,6 @@ spec:
             - name: main-config
               mountPath: /main-config
               readOnly: true
-            {{- if .Values.pdp.emrtd.enabled }}
-            - name: emrtd
-              mountPath: /emrtd
-              readOnly: true
-            {{- end }}
           args:
             - --config
             - /main-config/config.yaml

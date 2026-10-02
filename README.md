@@ -10,7 +10,7 @@ In addition, it may also serve as practical reference for working component conf
 Sets up the SIROS ID Stack:
 - [go-wallet-backend](https://github.com/sirosfoundation/go-wallet-backend)
 - [wallet-frontend](https://github.com/sirosfoundation/wallet-frontend)
-- Trust infrastructure with [go-trust (pdp)](https://github.com/sirosfoundation/go-trust)
+- Trust infrastructure with [go-trust (pdp)](https://github.com/sirosfoundation/go-trust), optionally a dedicated eMRTD PDP
 - Issuers and verifiers with [vc](https://github.com/sirosfoundation/vc)
 - Highly recommended but optional use of [Reloader](https://github.com/stakater/Reloader) for automatic configuration rollouts
 - Kubernetes Features
@@ -47,7 +47,7 @@ The following must be set in your values overlays (the chart defaults alone are 
   * "family_name": "Oldman"
   * "given_name": "Gary"
 * example-tenant.yaml - example with required values defined
-* ci/values-emrtd.yaml - overlay that enables the eMRTD document signer registry on the PDP (placeholder image)
+* ci/values-emrtd.yaml - overlay that enables the dedicated eMRTD PDP (placeholder digest and selectors)
 * config/demo - demo credentials, documents and identities
 * quickstart - example values and scripts
 
@@ -98,55 +98,74 @@ environment that already holds data will not pick up a new credential type on
 upgrade - clear the datastore, or add the documents through the issuer API
 (see `quickstart/add-documents.sh`).
 
-## eMRTD document signer trust (PDP)
-The PDP ([go-trust](https://github.com/sirosfoundation/go-trust)) can answer one extra question for a policy
-enforcement point (PEP) that has already verified an electronic passport or ID card chip: *does the Document
-Signer Certificate (DSC) chain, for the claimed issuing state, to a reviewed CSCA anchor?* This is the `emrtd`
-registry, available from go-trust 0.24.0. The feature is **disabled by default**; with `pdp.emrtd.enabled: false`
-the rendered PDP is unchanged.
+## Dedicated eMRTD PDP
+The `pdpEmrtd` block deploys a **second, dedicated** go-trust instance (Service `pdp-emrtd`) that answers one question
+for a policy enforcement point (PEP) that has already verified an electronic passport or ID card chip: *does the
+Document Signer Certificate (DSC) chain, for the claimed issuing state, to a reviewed CSCA anchor?* (the go-trust
+`emrtd` registry, go-trust >= 0.24.0). It is **disabled by default**; with `pdpEmrtd.enabled: false` nothing is rendered
+and the shared `pdp` is untouched.
 
-When enabled, the chart renders `registries.emrtd` and the policy `policies.policies.emrtd-document-signer`
-(`require_key_binding: true`, `allowed_key_types: [x5c]`) into the PDP configuration, and adds an init container that
-copies the reviewed anchors from a data-only image into an `emptyDir` mounted read-only at `/emrtd`
-(`anchors_dir: /emrtd/anchors`, `crls_dir: /emrtd/crls`). Existing actions (`pid-provider`, `verifier`, ...) keep being
-decided by their own registries; no `default_policy` is set.
+Why a separate PDP and not another registry in the shared `pdp`:
+* facetec-api, the PEP, accepts only an `https://` PDP URL (plain `http://` only on loopback) and sends no credentials.
+  The shared PDP serves wallet-backend, issuers and verifiers and must not be made reachable for it.
+* The shared PDP must not roll every time the (weekly) anchors image changes; the eMRTD PDP rolls on exactly that.
+* It has its own rate-limit bucket.
+* Only the dedicated PDP needs the pull secret for the private anchors image.
+
+The chart renders for the eMRTD PDP: its own ConfigMap `pdp-emrtd-main` containing **only** `registries.emrtd` and
+`policies.policies.emrtd-document-signer` (`require_key_binding`, `allowed_key_types: [x5c]`, optional `emrtd.path_len_*`,
+`fail_closed_on_unknown_action: true`; no whitelist, mDOC IACA or always-trusted registry), a Deployment `pdp-emrtd`
+(init container from the anchors image copying `/anchors` and `/crls` into an `emptyDir` via `TARGET=/emrtd`, mounted
+read-only at `/emrtd`; non-root, read-only root filesystem for the init container, all capabilities dropped; Reloader
+annotation; PodDisruptionBudget), a ClusterIP Service `pdp-emrtd` (port 80) and a NetworkPolicy. **No Ingress or
+HTTPRoute is created.** The NetworkPolicy denies everything by default: ingress only from `pdpEmrtd.networkPolicy.allowFrom`
+on the http port, no egress at all (the anchors are local files).
 
 ### Values
 | value | default | meaning |
 |---|---|---|
-| `pdp.emrtd.enabled` | `false` | Render the registry, policy, init container and volume |
-| `pdp.emrtd.registryName` | `emrtd-csca` | Registry name, referenced by the policy |
-| `pdp.emrtd.description` | `eMRTD CSCA anchors` | Free text |
-| `pdp.emrtd.pathLenMode` | `""` | `ignore` or `enforce` (RFC 5280 `pathLenConstraint`); empty keeps go-trust's default (ignore) |
-| `pdp.emrtd.pathLenOverride` | `null` | Integer >= 0, used instead of each certificate's own limit; implies `enforce`, not valid with `ignore` |
-| `pdp.emrtd.watch` | `true` | Reload on file changes. Here the data only changes when the pod is replaced |
-| `pdp.emrtd.anchors.image` | `""` | **Required when enabled.** `repository:tag` or `repository@sha256:...` |
-| `pdp.emrtd.anchors.pullPolicy` | `""` | Defaults to `global.imagePullPolicy` |
-| `pdp.emrtd.anchors.pullSecrets` | `[]` | Secret names (not created by the chart) for pulling the anchors image, merged with `global.imagePullSecrets` |
-| `pdp.emrtd.anchors.resources` | small requests/limits | Init container resources; keep them within the pod-level `resources.pdp` |
-| `pdp.emrtd.crls.enabled` | `true` | Set `crls_dir`. Without it no revocation check is made |
+| `pdpEmrtd.enabled` | `false` | Render the dedicated PDP |
+| `pdpEmrtd.replicas` | `1` | Replicas |
+| `pdpEmrtd.image` | `""` | go-trust image, must be >= 0.24.0; defaults to `images.pdp` |
+| `pdpEmrtd.externalUrl` | `http://pdp-emrtd` | go-trust `server.external_url` (discovery document only) |
+| `pdpEmrtd.logging.level` / `.format` | `info` / `json` | go-trust logging |
+| `pdpEmrtd.trustedProxies` | `[]` | CIDRs whose `X-Forwarded-For` is believed (`security.trusted_proxies`); set when a gateway/mesh is in front |
+| `pdpEmrtd.registryName`, `.description` | `emrtd-csca` | Registry name (referenced by the policy) and description |
+| `pdpEmrtd.pathLenMode` | `""` | `ignore` or `enforce` (RFC 5280 `pathLenConstraint`); empty keeps go-trust's default (ignore) |
+| `pdpEmrtd.pathLenOverride` | `null` | Integer >= 0 used instead of each certificate's limit; implies `enforce`, invalid with `ignore` |
+| `pdpEmrtd.watch` | `true` | Reload on file changes; here the data only changes when the pod is replaced |
+| `pdpEmrtd.anchors.image` | `""` | **Required when enabled.** `repository@sha256:<digest>` (strongly recommended) or `repository:tag` |
+| `pdpEmrtd.anchors.pullPolicy` | `""` | Defaults to `global.imagePullPolicy` |
+| `pdpEmrtd.anchors.pullSecrets` | `[]` | Secret names (not created by the chart), merged with `global.imagePullSecrets` |
+| `pdpEmrtd.anchors.resources` | small | Init container resources; keep within `pdpEmrtd.resources` (pod-level) |
+| `pdpEmrtd.crls.enabled` | `true` | Set `crls_dir`; without it no revocation check is made |
+| `pdpEmrtd.networkPolicy.allowFrom` | `[]` | **Required when enabled.** NetworkPolicyPeer list (pod/namespace selectors, ipBlock) that may call the PDP. facetec-api is not part of this chart: the operator names it |
+| `pdpEmrtd.resources`, `.podDisruptionBudget.minAvailable` | small, `0` | Pod-level resources, PDB |
+| `pdpEmrtd.configOverrides.main."config.yaml"` | `{}` | Advanced, see [docs/CONFIG_OVERRIDES.md](docs/CONFIG_OVERRIDES.md) |
 
-Misconfiguration fails at `helm template` time: a missing anchors image, `images.pdp` older than 0.24.0 (when the tag
-parses as semver), an invalid `pathLenMode`, a `pathLenOverride` combined with `ignore`, or `pdp.extraRegistries`
-defining its own `emrtd`. Types and unknown keys under `pdp.emrtd` are checked by `values.schema.json`.
-Extra policies can still be added through `pdp.configOverrides` (maps are merged, see
-[docs/CONFIG_OVERRIDES.md](docs/CONFIG_OVERRIDES.md)). A test overlay is in `ci/values-emrtd.yaml`.
+Misconfiguration fails at `helm template` time: missing `anchors.image` or `networkPolicy.allowFrom`, an image older than
+0.24.0 (when the tag parses as semver), an invalid `pathLenMode`, `pathLenOverride` with `ignore` or negative. Types and
+unknown keys under `pdpEmrtd` are checked by `values.schema.json`. A tag instead of a digest in `anchors.image` renders
+fine but prints a warning in the install notes (`templates/NOTES.txt`). A test overlay is in `ci/values-emrtd.yaml`.
 
 ### Publishing and pinning the anchors image
 The anchors are released by the `emrtd-trust-anchors` repository as the **private** container image
-`ghcr.io/sirosfoundation/emrtd-trust-anchors`, tagged `vYYYY.MM.DD.N`. Each release records its immutable digest in
-the release notes. Pin the digest, and raise the pin in a reviewed change for every release (including revocations):
+`ghcr.io/sirosfoundation/emrtd-trust-anchors`, tagged `vYYYY.MM.DD.N`; each release records its immutable digest in its
+release notes. **Pin the digest** (a tag can be moved, and the anchors decide which passports are accepted) and raise the pin in
+a reviewed change for every release, revocations included:
 ```yaml
-pdp:
-  emrtd:
-    enabled: true
-    anchors:
-      image: ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest from the release notes>
-      pullSecrets: [ghcr-emrtd-read]
+pdpEmrtd:
+  enabled: true
+  anchors:
+    image: ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest from the release notes>
+    pullSecrets: [ghcr-emrtd-read]
+  networkPolicy:
+    allowFrom:
+      - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: <facetec namespace>}}
+        podSelector: {matchLabels: {app.kubernetes.io/name: facetec-api}}
 ```
-Changing the image changes the pod spec, so the PDP is rolled and the init container installs the new content.
-Configuration changes are handled by Reloader as for the rest of the PDP. After each rollout check the PDP log line
-`emrtd anchors loaded` for the number of countries and anchors actually loaded.
+Changing the image changes the pod spec, so the eMRTD PDP (only) rolls and the init container installs the new content.
+After each rollout check the log line `emrtd anchors loaded` for the number of countries and anchors actually loaded.
 
 ### Pull secret for the private package
 Pulling needs a credential with `read:packages` (GHCR does not accept fine-grained tokens; use a classic token of a
@@ -158,28 +177,67 @@ kubectl create secret docker-registry ghcr-emrtd-read \
   --docker-username=<machine-user> \
   --docker-password="$GHCR_READ_TOKEN"
 ```
-and list its name in `pdp.emrtd.anchors.pullSecrets` (or in `global.imagePullSecrets`).
+and list its name in `pdpEmrtd.anchors.pullSecrets`.
 
-### Pointing the PEP (facetec-api) at the PDP
-The PEP calls the AuthZEN endpoint `POST /evaluation` of the PDP with action name `emrtd-document-signer`, subject
-`{"type": "key", "id": "<ISSUING STATE ALPHA-3>"}` and resource `{"type": "x5c", "id": "<same>", "key": ["<DSC base64 DER>", ...]}`.
-For facetec-api: set `TRUST_PDP_URL` to the PDP base URL, use the action name `emrtd-document-signer`, and set
-`trust.required` so that anything other than `decision: true` (including errors and timeouts) is not trusted. Inside
-this cluster the PDP is `http://pdp.<tenant-namespace>.svc.<clusterDomain>`.
+### Pointing facetec-api at it
+The PEP calls `POST /evaluation` with action `emrtd-document-signer`, subject `{"type": "key", "id": "<issuing state alpha-3>"}`
+and resource `{"type": "x5c", "id": "<same>", "key": ["<DSC base64 DER>", ...]}`. For facetec-api set `TRUST_PDP_URL` to an
+`https://` bare origin (it never follows redirects), keep the action name `emrtd-document-signer`, and set `trust.required` so
+that anything other than `decision: true` (errors and timeouts included) is not trusted.
+
+The Service speaks plain http and has no authentication, and facetec-api refuses a non-loopback `http://` URL. Choose one:
+1. **TLS front.** Terminate TLS in a gateway or mesh in front of the Service `pdp-emrtd` (the chart creates none, on
+   purpose) and authenticate callers there if facetec-api runs outside the cluster (private networking, mTLS or an authenticating
+   gateway are the operator's responsibility). Name the front's pods/addresses in `networkPolicy.allowFrom`, and set
+   `trustedProxies` so the rate limit is per client.
+2. **Loopback sidecar.** Run go-trust as a second container in facetec-api's own pod, with `TRUST_PDP_URL=http://127.0.0.1:8080`.
+   This chart is not involved; the following is the shape, with the same image, config and init container pattern:
+```yaml
+# in facetec-api's Deployment (not part of this chart)
+spec:
+  template:
+    spec:
+      imagePullSecrets: [{name: ghcr-emrtd-read}]
+      volumes:
+        - {name: pdp-config, configMap: {name: facetec-emrtd-pdp}}   # config.yaml as rendered in ConfigMap pdp-emrtd-main
+        - {name: emrtd, emptyDir: {}}
+      initContainers:
+        - name: emrtd-anchors
+          image: ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest>
+          env: [{name: TARGET, value: /emrtd}]
+          volumeMounts: [{name: emrtd, mountPath: /emrtd}]
+          securityContext: {runAsNonRoot: true, allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+      containers:
+        - name: facetec-api
+          env: [{name: TRUST_PDP_URL, value: "http://127.0.0.1:8080"}]
+        - name: pdp
+          image: ghcr.io/sirosfoundation/go-trust:0.24.0
+          args: [--config, /main-config/config.yaml]   # server.host 127.0.0.1, port 8080
+          volumeMounts:
+            - {name: pdp-config, mountPath: /main-config, readOnly: true}
+            - {name: emrtd, mountPath: /emrtd, readOnly: true}
+```
+   The ConfigMap can be taken from `helm template -s templates/03-pdp-emrtd.yaml` with `server.host` set to `127.0.0.1`
+   through `pdpEmrtd.configOverrides`. On **Fly.io** a Machine runs one process: running facetec-api and go-trust together needs a
+   process supervisor in one image (the anchors then have to be baked into that image, there is no init container), or two apps
+   with Fly private networking between them. This is an unverified suggestion, nothing here was tried on Fly.
 
 ### Open points
-* **The PDP is not exposed and has no authentication.** No ingress or HTTPRoute exists for it, and this chart adds
-  none. The PDP NetworkPolicy admits only wallet-backend, verifier and issuer-apigw. A facetec-api that runs inside
-  the cluster needs an additional ingress rule for its pods; one that runs outside needs a path to the PDP that the
-  operator secures (private network, network policy, or a gateway with its own authentication in front, since facetec-api's
-  PDP client sends no credentials). Neither is chart behaviour.
-* The PDP answers with certificate fingerprints and subjects in `context.reason.admin`; this is meant for service
-  callers and must not be passed on to end users.
-* `signing_time` is taken on the caller's word: the PEP must derive it from a verified SOD.
-* go-trust 0.23.0 enables rate limiting (100 requests/s per peer address, burst 10) and keys it on the peer address;
-  a gateway in front of the PDP shares one bucket unless `security.trusted_proxies` is set (via `pdp.configOverrides`).
-* The anchors are copied once per pod start; a revocation reaches the PDP only when the pin is changed and the pod is rolled.
-* The data is for internal trust evaluation only (see the licence notice in the image).
+* **Reachability and authentication are the operator's.** The eMRTD PDP has no per-caller authentication and facetec-api's
+  PDP client sends no credentials. The chart only provides the deny-by-default NetworkPolicy, so someone has to decide where
+  facetec-api runs (in-cluster, outside, or sidecar) and add the matching `allowFrom` entry or gateway. The chart exposes nothing.
+* **Rate limit:** go-trust 0.23.0+ limits to 100 requests/s per peer address with burst 10, plenty for passport onboarding (one request per
+  scan). Behind a gateway all callers share one bucket unless `pdpEmrtd.trustedProxies` is set.
+* **Revocation lag:** CRLs ship inside the anchors image, so a revocation reaches the PDP only when the image is updated and the pod rolls.
+  The anchors image must be refreshed more often than the CRLs it contains are reissued (anchors are released weekly, so every CRL we
+  depend on needs an update interval longer than a week). Tracked in `sirosfoundation/emrtd-trust-anchors#46`; until then deploy the
+  newest anchors release promptly.
+* **Unknown config keys:** go-trust 0.24.0 only logs `Unknown config key ignored`; the strict startup error announced for 0.24.0 is
+  not implemented. A misspelled key silently configures nothing, so test any rendered config (especially `configOverrides`) with the real
+  binary and treat that log line as a failure.
+* The PDP answers with certificate fingerprints and subjects in `context.reason.admin`: for service callers only, never for end users.
+  `signing_time` is taken on the caller's word, so the PEP must derive it from a verified SOD.
+* The anchors data is for internal trust evaluation only (see the licence notice in the image).
 
 ## Deployment Examples
 Example of templating with local chart:

@@ -2,38 +2,51 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "pdp": {
+    "pdpEmrtd": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
-        "emrtd": {
+        "enabled": { "type": "boolean" },
+        "replicas": { "type": "integer", "minimum": 0 },
+        "image": { "type": "string" },
+        "externalUrl": { "type": "string" },
+        "logging": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "enabled": { "type": "boolean" },
-            "registryName": { "type": "string", "minLength": 1 },
-            "description": { "type": "string" },
-            "pathLenMode": { "type": "string", "enum": ["", "ignore", "enforce"] },
-            "pathLenOverride": { "type": ["integer", "null"], "minimum": 0 },
-            "watch": { "type": "boolean" },
-            "anchors": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "image": { "type": "string" },
-                "pullPolicy": { "type": "string", "enum": ["", "Always", "IfNotPresent", "Never"] },
-                "pullSecrets": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-                "resources": { "type": "object" }
-              }
-            },
-            "crls": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "enabled": { "type": "boolean" }
-              }
-            }
+            "level": { "type": "string", "enum": ["debug", "info", "warn", "warning", "error"] },
+            "format": { "type": "string", "enum": ["json", "text"] }
           }
-        }
+        },
+        "trustedProxies": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "registryName": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "pathLenMode": { "type": "string", "enum": ["", "ignore", "enforce"] },
+        "pathLenOverride": { "type": ["integer", "null"], "minimum": 0 },
+        "watch": { "type": "boolean" },
+        "anchors": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "image": { "type": "string" },
+            "pullPolicy": { "type": "string", "enum": ["", "Always", "IfNotPresent", "Never"] },
+            "pullSecrets": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "resources": { "type": "object" }
+          }
+        },
+        "crls": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "enabled": { "type": "boolean" } }
+        },
+        "networkPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "allowFrom": { "type": "array", "items": { "type": "object" } } }
+        },
+        "resources": { "type": "object" },
+        "podDisruptionBudget": { "type": "object" },
+        "configOverrides": { "type": "object" }
       }
     }
   }
