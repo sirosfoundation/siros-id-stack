@@ -131,6 +131,77 @@ pdp:
     main:
       "config.yaml": {}
 
+# Dedicated eMRTD document signer PDP (go-trust "emrtd" registry). DISABLED by default.
+# A separate go-trust deployment that decides ONLY whether the Document Signer Certificate of a
+# passport/ID chip chains to a reviewed CSCA anchor of the claimed issuing state. It is not the shared
+# `pdp` (wallet-backend, issuers, verifiers) and shares no config with it. It has no authentication:
+# the Service is ClusterIP only, the chart adds no Ingress/HTTPRoute, and its NetworkPolicy admits
+# only the peers listed in networkPolicy.allowFrom. See README.md, "Dedicated eMRTD PDP".
+pdpEmrtd:
+  enabled: false
+  replicas: 1
+  # go-trust image, must be >= 0.24.0. Defaults to images.pdp.
+  image: ""
+  externalUrl: "http://pdp-emrtd"
+  logging:
+    level: info
+    format: json
+  # CIDRs whose X-Forwarded-For/X-Real-IP are believed for rate limiting (go-trust security.trusted_proxies).
+  # Set this when a gateway or mesh terminates TLS in front of the Service, else all callers share one bucket.
+  trustedProxies: []
+  # Registry name, referenced by the policy. go-trust default is "emrtd-csca".
+  registryName: "emrtd-csca"
+  description: "eMRTD CSCA anchors"
+  # Path length handling of the policy "emrtd-document-signer" (go-trust docs/EMRTD.md). Opt-in.
+  #   pathLenMode: "" | "ignore" | "enforce"
+  #   pathLenOverride: integer >= 0, implies enforce (not valid together with "ignore")
+  pathLenMode: ""
+  pathLenOverride: null
+  # Reload anchors/CRLs on file changes. Here the data only changes when the pod is replaced.
+  watch: true
+  anchors:
+    # REQUIRED when enabled. Data-only image with the exported anchors at /anchors and /crls.
+    # PRIVATE package: pulling needs a read:packages credential (pullSecrets).
+    # Pin by DIGEST (strongly recommended; a tag produces a warning in the install notes):
+    #   ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:<digest from the release notes>
+    image: ""
+    # Defaults to global.imagePullPolicy
+    pullPolicy: ""
+    # Names of Secrets (kubernetes.io/dockerconfigjson) for the anchors image, merged with
+    # global.imagePullSecrets. Not created by this chart.
+    pullSecrets: []
+    resources:
+      requests:
+        cpu: 5m
+        memory: 8M
+      limits:
+        cpu: 20m
+        memory: 32M
+  crls:
+    # Also install /crls from the image and set crls_dir (revocation checks). Without it no CRL is consulted.
+    enabled: true
+  networkPolicy:
+    # REQUIRED when enabled (the chart's NetworkPolicies are always on). NetworkPolicyPeer entries
+    # (podSelector, namespaceSelector, ipBlock) that may call the PDP on its http port. facetec-api is
+    # not part of this chart, so the operator names it. Example:
+    #   - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: facetec}}
+    #     podSelector: {matchLabels: {app.kubernetes.io/name: facetec-api}}
+    allowFrom: []
+  # Pod-level resources (Kubernetes 1.34), like the shared PDP. Keep anchors.resources within them.
+  resources:
+    requests:
+      cpu: 10m
+      memory: 30M
+    limits:
+      cpu: 50m
+      memory: 64M
+  podDisruptionBudget:
+    minAvailable: 0
+  # Advanced usage - see docs/CONFIG_OVERRIDES.md
+  configOverrides:
+    main:
+      "config.yaml": {}
+
 issuer:
   enabled: true
   # max 1MB in total, use the API if you need more, since the feature is for quick testing.
@@ -389,7 +460,7 @@ images:
   walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.22.3"
   walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.22.3"
   walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.6.0"
-  pdp: "ghcr.io/sirosfoundation/go-trust:0.21.1"
+  pdp: "ghcr.io/sirosfoundation/go-trust:0.24.0"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
   # Init/sidecar/shared images

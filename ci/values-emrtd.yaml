@@ -1,0 +1,18 @@
+# Test/example overlay: enables the dedicated eMRTD PDP (Service "pdp-emrtd").
+# Use together with example-tenant.yaml (and optionally values-demo.yaml):
+#   helm template t . -f values-demo.yaml -f example-tenant.yaml -f ci/values-emrtd.yaml
+# The image digest, secret name and selectors below are placeholders, replace them in a real deployment.
+pdpEmrtd:
+  enabled: true
+  anchors:
+    image: "ghcr.io/sirosfoundation/emrtd-trust-anchors@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    pullSecrets:
+      - ghcr-emrtd-read
+  networkPolicy:
+    allowFrom:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: facetec
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: facetec-api
