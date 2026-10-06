@@ -114,6 +114,15 @@ features:
   #           - birthdate 
   #     vctm:
   #       file: config/demo/vctm_demo_3.json
+  #   "demo_4":
+  #     vct: urn:demo:4
+  #     format: mso_mdoc
+  #     issuance:
+  #       authProvider: preauth # for credentials that should only be issued through preauthorized offers
+  #       source: "datastore"
+  #       authOptions: {}
+  #     vctm:
+  #       file: config/demo/vctm_demo_4.json
   credentialTypes: {}
 
 pdp:

@@ -106,10 +106,11 @@ apigw:
   data_sources:
     {{- if $assertionCredentials }}
     assertion:
-      scopes: {{- range $id, $data := $assertionCredentials }}
+      scopes:
+        {{- range $id, $data := $assertionCredentials }}
         {{ $id | quote }}:
           auth_provider: {{ $data.issuance.authProvider | quote }}
-      {{- end }}
+        {{- end }}
     {{- end }}
     {{- if (or .Values.issuer.datastoreImport.documents $datastoreCredentials) }}
     datastore:
