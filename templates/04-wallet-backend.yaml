@@ -1,4 +1,29 @@
 {{- $ns := include "siros-id.namespace" . -}}
+{{- $registryLayout := include "siros-id.walletBackend.registryConfigLayout" . -}}
+{{- $legacyRegistryOverrides := index .Values.walletBackend.configOverrides.server.main "registry.yaml" | default dict | deepCopy -}}
+{{- range $k := list "server" "logging" "http_client" -}}
+{{- if hasKey ($.Values.walletBackend.registryExtraConfig | default dict) $k -}}
+{{- fail (printf "walletBackend.registryExtraConfig.%s is not part of the registry: section any more; configure it in the backend config (walletBackend.configOverrides.server.main.\"backend.yaml\")" $k) -}}
+{{- end -}}
+{{- end -}}
+{{- if eq $registryLayout "integrated" -}}
+{{- if $legacyRegistryOverrides -}}
+{{- fail "walletBackend.configOverrides.server.main.\"registry.yaml\" is not used with registryConfigLayout=integrated; move its content to walletBackend.registryExtraConfig (registry: section layout, jwt.require_auth becomes require_auth)" -}}
+{{- end -}}
+{{- else if .Values.walletBackend.registryExtraConfig -}}
+{{- /* legacy layout: registryExtraConfig is written in registry: section layout; translate to registry.yaml */ -}}
+{{- $extra := deepCopy .Values.walletBackend.registryExtraConfig -}}
+{{- if hasKey $extra "require_auth" -}}
+{{- $oldJwt := get $extra "jwt" | default dict -}}
+{{- $_ := set $extra "jwt" (mergeOverwrite $oldJwt (dict "require_auth" (get $extra "require_auth"))) -}}
+{{- $_ := unset $extra "require_auth" -}}
+{{- end -}}
+{{- $embed := get $extra "image_embed" | default dict -}}
+{{- if hasKey $embed "max_image_size" -}}
+{{- $_ := set $embed "max_image_size" (int64 (get $embed "max_image_size")) -}}
+{{- end -}}
+{{- $legacyRegistryOverrides = mergeOverwrite $extra $legacyRegistryOverrides -}}
+{{- end -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
 {{- define "siros-id.walletBackend.config.server.main.\"backend.yaml\"" -}}
 {{- $hostnameWalletFrontend := include "siros-id.hostname.walletFrontend" . -}}
@@ -59,6 +84,72 @@ wallet_provider:
     attestation:
       fido2_attestation:
         enabled: true
+{{- if eq (include "siros-id.walletBackend.registryConfigLayout" .) "integrated" }}
+registry:
+  {{- include "siros-id.walletBackend.registryConfig" . | nindent 2 }}
+{{- end }}
+{{- end -}}
+
+{{- /*
+Layout of the VCTM registry configuration (values: walletBackend.registryConfigLayout):
+  legacy     - separate registry.yaml passed with "-registry-config" (go-wallet-backend before #431)
+  integrated - "registry:" section of backend.yaml (go-wallet-backend with #431 or later)
+*/ -}}
+{{- define "siros-id.walletBackend.registryConfigLayout" -}}
+{{- $layout := .Values.walletBackend.registryConfigLayout | default "legacy" -}}
+{{- if not (has $layout (list "legacy" "integrated")) -}}
+{{- fail (printf "walletBackend.registryConfigLayout must be \"legacy\" or \"integrated\", got %q" $layout) -}}
+{{- end -}}
+{{- $layout -}}
+{{- end -}}
+
+{{- /*
+Registry settings in the go-wallet-backend "registry:" section layout, i.e. the content of the
+"registry:" block in backend.yaml (integrated) and, except for require_auth, of the top level of
+the old registry.yaml (legacy). walletBackend.registryExtraConfig is deep-merged over the defaults.
+A "jwt.require_auth" key in registryExtraConfig (old registry.yaml layout) is mapped to
+"require_auth". Returns YAML.
+*/ -}}
+{{- define "siros-id.walletBackend.registryConfig" -}}
+{{- $defaults := dict -}}
+{{- $defaults = fromYaml (include "siros-id.walletBackend.registryConfigDefaults" .) -}}
+{{- $extra := deepCopy (.Values.walletBackend.registryExtraConfig | default dict) -}}
+{{- $jwt := get $extra "jwt" | default dict -}}
+{{- /* the new key wins over the deprecated jwt.require_auth */ -}}
+{{- if and (hasKey $jwt "require_auth") (not (hasKey $extra "require_auth")) -}}
+{{- $_ := set $extra "require_auth" (get $jwt "require_auth") -}}
+{{- end -}}
+{{- $_ := unset $extra "jwt" -}}
+{{- if not $extra -}}
+{{- include "siros-id.walletBackend.registryConfigDefaults" . -}}
+{{- else -}}
+{{- $merged := mergeOverwrite $defaults $extra -}}
+{{- /* YAML numbers are float64 after fromYaml; keep large integers out of exponent notation */ -}}
+{{- $embed := get $merged "image_embed" | default dict -}}
+{{- if hasKey $embed "max_image_size" -}}
+{{- $_ := set $embed "max_image_size" (int64 (get $embed "max_image_size")) -}}
+{{- end -}}
+{{- toYamlPretty $merged -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "siros-id.walletBackend.registryConfigDefaults" -}}
+source:
+  url: https://registry.siros.org/.well-known/vctm-registry.json
+  poll_interval: 3m
+  timeout: 30s
+  local_overrides:
+    - /vctms
+cache:
+  path: /cache/vctm-cache.json
+  max_age: 10m
+filter:
+  include_patterns: []
+  exclude_patterns: []
+image_embed:
+  enabled: true
+  max_image_size: 10485760
+require_auth: false
 {{- end -}}
 
 {{- define "siros-id.walletBackend.config.server.main.\"registry.yaml\"" -}}
@@ -186,15 +277,17 @@ data:
       )
     | nindent 4
   }}
+  {{- if eq $registryLayout "legacy" }}
   registry.yaml: | {{-
     include "siros-id.renderYamlWithOverrides"
       (list
         .
         "siros-id.walletBackend.config.server.main.\"registry.yaml\""
-        (index .Values.walletBackend.configOverrides.server.main "registry.yaml")
+        $legacyRegistryOverrides
       )
     | nindent 4
   }}
+  {{- end }}
 
 ---
 apiVersion: apps/v1
@@ -286,8 +379,10 @@ spec:
             - backend,registry,engine,auth
             - -config
             - /main-config/backend.yaml
+            {{- if eq $registryLayout "legacy" }}
             - -registry-config
             - /main-config/registry.yaml
+            {{- end }}
 
 ---
 {{ include "siros-id.podDisruptionBudget" (list . (dict "name" "wallet-backend" "minAvailable" .Values.podDisruptionBudget.walletBackend.minAvailable)) }}
