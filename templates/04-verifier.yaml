@@ -81,7 +81,7 @@ verifier:
   {{- end }}
   {{- if .Values.verifier.oidcProvider.enabled }}
   outbound:
-    oidcProvider:
+    oidc_provider:
       issuer: https://{{ $hostnameVerifier }}
       subject_type: {{ .Values.verifier.oidcProvider.subjectType | quote }}
       {{- with .Values.verifier.oidcProvider.staticClients }}
