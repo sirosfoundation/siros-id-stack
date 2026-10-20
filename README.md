@@ -16,7 +16,7 @@ Sets up the SIROS ID Stack:
 - Kubernetes Features
   - Gateway API
   - certificates via [cert-manager](https://github.com/cert-manager/cert-manager) operator
-  - mongodb setup via [mongodb-kubernetes-operator](https://github.com/mongodb/mongodb-kubernetes)
+  - mongodb setup via [mongodb-kubernetes](https://github.com/mongodb/mongodb-kubernetes)
   - Network Policies
   - Pod Disruption Budgets
   - CronJobs
@@ -26,7 +26,7 @@ Sets up the SIROS ID Stack:
 - Kubernetes 1.34 (due to pod-level resource requests/limits)
 - Gateway API, ingress is **NOT** supported at this time
 - [cert-manager](https://github.com/cert-manager/cert-manager) (tested with 1.20.0)
-- [mongodb-kubernetes-operator](https://github.com/mongodb/mongodb-kubernetes), community edition is supported (tested with 1.8.0)
+- [mongodb-kubernetes](https://github.com/mongodb/mongodb-kubernetes), community edition is supported (tested with 1.8.0)
 
 ## Required values
 The following must be set in your values overlays (the chart defaults alone are not deployable):
