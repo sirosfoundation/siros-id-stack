@@ -396,7 +396,7 @@ images:
   issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.20-sirosid.4-amd64"
   verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.20-sirosid.4-amd64"
   walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.22.3"
-  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.22.3"
+  walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.24.0"
   walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.6.0"
   pdp: "ghcr.io/sirosfoundation/go-trust:0.21.1"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
