@@ -59,6 +59,8 @@ features:
   generateSecrets: true
   requireInvite: true
   otlpCollector: false
+  # Where possible, disable application-level caching. Useful for testing and debugging.
+  disableCaching: false
   branding:
     # Only PNG images are supported (used by verifier and issuer-apigw)
     faviconDataUrl: ""
@@ -94,6 +96,7 @@ features:
   #       authProvider: openid4vp
   #       source: "datastore"
   #       authOptions:
+  #         identityMappingAuthenticSource: "MockTaxAuthority"
   #         scopes:
   #           pid_1_5:
   #             claims:
@@ -108,6 +111,7 @@ features:
   #       authProvider: oidc
   #       source: "datastore" # or "assertion" if the credential should be built dynamically via oidc claims
   #       authOptions:
+  #         identityMappingAuthenticSource: "MockTaxAuthority"
   #         claims:
   #           - given_name
   #           - family_name
@@ -391,10 +395,10 @@ mongoBackup:
 
 images:
   # Application images
-  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.7.20-sirosid.4-amd64"
-  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.7.20-sirosid.4-amd64"
-  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.7.20-sirosid.4-amd64"
-  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.7.20-sirosid.4-amd64"
+  issuerRegistry: "ghcr.io/sirosfoundation/vc/registry:0.8.0-sirosid.0-amd64"
+  issuerApigw: "ghcr.io/sirosfoundation/vc/apigw:0.8.0-sirosid.0-amd64"
+  issuerCore: "ghcr.io/sirosfoundation/vc/issuer:0.8.0-sirosid.0-amd64"
+  verifier: "ghcr.io/sirosfoundation/vc/verifier:0.8.0-sirosid.0-amd64"
   walletAdmin: "ghcr.io/sirosfoundation/go-wallet-admin:0.22.3"
   walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.24.0"
   walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.6.0"

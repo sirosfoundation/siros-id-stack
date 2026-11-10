@@ -25,6 +25,7 @@ features:
         authProvider: oidc
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           claims:
             - given_name
             - family_name
@@ -38,6 +39,7 @@ features:
         authProvider: openid4vp
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           scopes:
             demo_pid_rb_1_5:
               claims:
@@ -53,6 +55,7 @@ features:
         authProvider: openid4vp
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "Ladok"
           scopes:
             demo_pid_rb_1_5:
               claims:
@@ -68,6 +71,7 @@ features:
         authProvider: oidc
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           claims:
             - given_name
             - family_name
@@ -79,6 +83,7 @@ features:
         authProvider: oidc
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           claims:
             - given_name
             - family_name
@@ -95,6 +100,7 @@ features:
         authProvider: openid4vp
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           scopes:
             demo_pid_rb_1_5:
               claims:
@@ -111,6 +117,7 @@ features:
         authProvider: openid4vp
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           scopes:
             demo_pid_rb_1_5:
               claims:
@@ -128,6 +135,7 @@ features:
         authProvider: openid4vp
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           scopes:
             demo_pid_rb_1_5:
               claims:
@@ -144,6 +152,7 @@ features:
         authProvider: openid4vp
         source: "datastore"
         authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
           scopes:
             demo_pid_rb_1_5:
               claims:
