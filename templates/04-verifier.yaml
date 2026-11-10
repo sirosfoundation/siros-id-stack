@@ -81,7 +81,7 @@ verifier:
   {{- end }}
   {{- if .Values.verifier.oidcProvider.enabled }}
   outbound:
-    oidcProvider:
+    oidc_provider:
       issuer: https://{{ $hostnameVerifier }}
       subject_type: {{ .Values.verifier.oidcProvider.subjectType | quote }}
       {{- with .Values.verifier.oidcProvider.staticClients }}
@@ -93,8 +93,8 @@ verifier:
 {{- define "siros-id.verifier.config.main.\"secrets.yaml.template\"" -}}
 verifier:
   outbound:
-    oidcProvider:
-      subject_salt: ${oidcProvider_SUBJECT_SALT}
+    oidc_provider:
+      subject_salt: ${OIDC_PROVIDER_SUBJECT_SALT}
 {{- end -}}
 {{- /* ------------------------------------------------------------------------------------- */ -}}
 
@@ -249,7 +249,7 @@ spec:
               done
         {{- include "siros-id.secretsRendererInitContainer" (list . (dict
           "secretName" "verifier-main"
-          "envs" (dict "oidcProvider_SUBJECT_SALT" "oidcProviderSubjectSalt"))) | nindent 8 }}
+          "envs" (dict "OIDC_PROVIDER_SUBJECT_SALT" "oidcProviderSubjectSalt"))) | nindent 8 }}
       containers:
         - name: main
           image: {{ .Values.images.verifier | quote }}
