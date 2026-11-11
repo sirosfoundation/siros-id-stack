@@ -496,10 +496,10 @@ resources:
   verifier:
     requests:
       cpu: 40m
-      memory: 210M
+      memory: 310M
     limits:
       cpu: 80m
-      memory: 240M
+      memory: 350M
   walletBackend:
     requests:
       cpu: 10m
