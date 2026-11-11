@@ -101,7 +101,6 @@
           }
         }
       },
-
       "administrative_number": {
         "value_type": "tstr",
         "display": [{ "locale": "en-US", "name": "Administrative number" }]
@@ -149,6 +148,14 @@
       "age_over_18": {
         "value_type": "bool",
         "display": [{ "locale": "en-US", "name": "Over 18" }]
+      },
+      "age_over_21": {
+        "value_type": "bool",
+        "display": [{ "locale": "en-US", "name": "Over 21" }]
+      },
+      "age_over_65": {
+        "value_type": "bool",
+        "display": [{ "locale": "en-US", "name": "Over 65" }]
       },
       "issuing_jurisdiction": {
         "value_type": "tstr",

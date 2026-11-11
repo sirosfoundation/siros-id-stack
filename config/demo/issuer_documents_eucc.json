@@ -15,47 +15,29 @@
             "legal_form_type": "Aktiebolag (AB)",
             "registration_member_state": "SE",
             "registered_address": {
-                "full_address": "Sveavägen 42, 111 34 Stockholm, Sweden",
-                "thorough_fare": "Sveavägen",
-                "locator_designator": "42",
-                "post_code": "111 34",
-                "post_name": "Stockholm",
-                "admin_unit_level_1": "SE",
-                "admin_unit_level_2": "Stockholm"
+                "full_address": "Sveavägen 42, 111 34 Stockholm, Sweden"
             },
             "registration_date": "2015-06-01",
             "legal_person_status": "active",
             "legal_person_activity": {
-                "code": "62.01",
-                "description": "Computer programming activities"
+                "code": "62.01"
             },
             "legal_representative": [
                 "Helen Mirren"
             ],
-            "share_capital": {
-                "amount": "500000",
-                "currency": "SEK"
-            },
-            "digital_contact_point": {
-                "email": "info@aurora-analytics.example.com",
-                "website": "https://aurora-analytics.example.com"
-            },
             "issuing_authority": "Bolagsverket",
             "issuing_authority_id": "SE:BOLAGSVERKET",
             "issuing_country": "SE",
-            "issuing_jurisdiction": "SE",
             "issuance_date": "2026-01-15T09:00:00Z",
             "authentic_source_id": "SE:BOLAGSVERKET",
-            "authentic_source_name": "Bolagsverket",
-            "attestation_legal_category": "PUB-EAA",
-            "trust_anchor": "https://trust.example.org/anchors/se/bolagsverket"
+            "authentic_source_name": "Bolagsverket"
         }
     },
     "102": {
         "meta": {
             "authentic_source": "MockTaxAuthority",
             "scope": "eucc",
-            "document_id": "document_id_eucc_102",
+            "document_id": "document_id_eucc_102-full",
             "created_at": "0001-01-01T00:00:00Z"
         },
         "identity_mapping_ids": [
@@ -73,7 +55,10 @@
                 "post_code": "10117",
                 "post_name": "Berlin",
                 "admin_unit_level_1": "DE",
-                "admin_unit_level_2": "Berlin"
+                "admin_unit_level_2": "Berlin",
+                "locator_name": "Rheinmark Haus",
+                "post_office_box": "Postfach 1105",
+                "care_of": "Rechtsabteilung"
             },
             "registration_date": "2011-03-22",
             "legal_person_status": "active",
@@ -95,12 +80,13 @@
             "issuing_authority": "Amtsgericht Charlottenburg",
             "issuing_authority_id": "DE:HANDELSREGISTER",
             "issuing_country": "DE",
-            "issuing_jurisdiction": "DE",
+            "issuing_jurisdiction": "DE-BE",
             "issuance_date": "2026-01-15T09:00:00Z",
             "authentic_source_id": "DE:HANDELSREGISTER",
             "authentic_source_name": "Amtsgericht Charlottenburg",
             "attestation_legal_category": "PUB-EAA",
-            "trust_anchor": "https://trust.example.org/anchors/de/handelsregister"
+            "trust_anchor": "https://trust.example.org/anchors/de/handelsregister",
+            "legal_person_duration": "2111-03-22"
         }
     }
 }
