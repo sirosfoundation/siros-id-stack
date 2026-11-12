@@ -10,6 +10,7 @@ In addition, it may also serve as practical reference for working component conf
 Sets up the SIROS ID Stack:
 - [go-wallet-backend](https://github.com/sirosfoundation/go-wallet-backend)
 - [wallet-frontend](https://github.com/sirosfoundation/wallet-frontend)
+- Optionally the Rust WMP engine ([siros-wallet-core](https://github.com/sirosfoundation/siros-wallet-core) `engine-server`), see [WMP engine](#wmp-engine)
 - Trust infrastructure with [go-trust (pdp)](https://github.com/sirosfoundation/go-trust)
 - Issuers and verifiers with [vc](https://github.com/sirosfoundation/vc)
 - Highly recommended but optional use of [Reloader](https://github.com/stakater/Reloader) for automatic configuration rollouts
@@ -113,6 +114,22 @@ Using the examples above, the routes created for the gateway API will be the fol
 * https://example-tenant.backend.example.localhost
 * https://example-tenant.issuer.example.localhost
 * https://example-tenant.verifier.example.localhost
+
+### WMP engine
+Set `wmpEngine.enabled: true` to deploy the Rust WMP engine beside the wallet-backend's own engine. It serves the
+HTTP+SSE binding of the Wallet Messaging Protocol and is exposed by an HTTPRoute on the wallet-backend hostname,
+under the `wmpEngine.pathPrefix` (default `/wmp-engine`), which the gateway strips:
+
+| URL (example tenant) | Engine endpoint |
+|---|---|
+| `POST https://example-tenant.wallet-backend.example.localhost/wmp-engine/wmp` | `POST /wmp` |
+| `GET https://example-tenant.wallet-backend.example.localhost/wmp-engine/wmp/events` | `GET /wmp/events` (SSE) |
+| `https://example-tenant.wallet-backend.example.localhost/wmp-engine/healthz`, `/readyz` | `/healthz`, `/readyz` |
+
+The engine has no database and no key. It validates bearer tokens against the wallet-backend's authorization server
+(JWKS over the cluster network, issuer `https://<wallet-backend hostname>`) and asks the PDP (`pdp.externalUrl`, or
+`wmpEngine.pdpUrl`) for trust decisions. Requests carry a long-lived SSE stream: if your gateway has a default request
+timeout, lift it with `wmpEngine.route.timeouts` (for example `request: 0s`).
 
 ### Debug
 Use the `admin-tools` pod to debug the stack. It has 0 replicas by default, so you need to manually set it to 1.
