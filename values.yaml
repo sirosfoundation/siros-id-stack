@@ -338,6 +338,31 @@ walletFrontend:
   logoDarkDataUrl: ""
   theme: ""
 
+# The Rust WMP engine (siros-wallet-core engine-server): the HTTP+SSE binding of the Wallet Messaging
+# Protocol, beside the wallet-backend's own engine. Off by default.
+wmpEngine:
+  enabled: false
+  # The engine is exposed on the wallet-backend hostname under this path prefix, which the gateway strips:
+  # https://<wallet-backend host>/wmp-engine/wmp (POST) and /wmp-engine/wmp/events (SSE).
+  pathPrefix: /wmp-engine
+  # Trust decisions: the engine appends /v1/evaluate. Defaults to pdp.externalUrl.
+  pdpUrl: ""
+  # Optional bearer for the PDP, from an existing Secret in the tenant namespace:
+  # pdpTokenSecret:
+  #   name: wmp-engine-pdp
+  #   key: token
+  pdpTokenSecret: {}
+  # "user": sessions are owned by tenant/subject. "tenant": the token's sub is a rotating pseudonym and the
+  # tenant owns the session (the privacy-preserving remote engine).
+  principalMode: user
+  maxConcurrentFlows: 16
+  # Extra container env vars, as a list of name/value entries (the engine's ENGINE_* surface).
+  extraEnv: []
+  route:
+    # HTTPRoute rule timeouts (Gateway API), e.g. { request: "0s" } to keep the SSE stream open where the
+    # gateway's default request timeout would cut it. Empty leaves the gateway default.
+    timeouts: {}
+
 # go-r2ps-service (WSCA-BE / Remote PKCS#11 Signing Service)
 r2ps:
   enabled: false
@@ -399,6 +424,7 @@ images:
   walletBackend: "ghcr.io/sirosfoundation/go-wallet-backend:0.22.3"
   walletFrontend: "ghcr.io/sirosfoundation/wallet-frontend:0.6.0"
   pdp: "ghcr.io/sirosfoundation/go-trust:0.21.1"
+  wmpEngine: "ghcr.io/sirosfoundation/engine-server:v0.2.2"
   otlpCollector: "docker.io/jaegertracing/jaeger:2.15.1"
   r2ps: "ghcr.io/sirosfoundation/go-r2ps-service:0.1.0"
   # Init/sidecar/shared images
@@ -418,6 +444,7 @@ replicas:
   verifier: 1
   walletBackend: 1
   walletFrontend: 1
+  wmpEngine: 1
   mongo: 3
 
 # PodDisruptionBudget minAvailable per component (number or percentage string e.g. "50%")
@@ -437,6 +464,8 @@ podDisruptionBudget:
   walletBackend:
     minAvailable: 0
   walletFrontend:
+    minAvailable: 0
+  wmpEngine:
     minAvailable: 0
 
 resources:
@@ -502,6 +531,13 @@ resources:
       memory: 50M
     limits:
       cpu: 20m
+      memory: 80M
+  wmpEngine:
+    requests:
+      cpu: 10m
+      memory: 20M
+    limits:
+      cpu: 100m
       memory: 80M
   walletBackendConfig:
     requests:
