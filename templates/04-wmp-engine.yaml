@@ -1,0 +1,159 @@
+{{- if .Values.wmpEngine.enabled -}}
+{{- $ns := include "siros-id.namespace" . -}}
+{{- $hostnameWalletBackend := include "siros-id.hostname.walletBackend" . -}}
+{{- $pathPrefix := .Values.wmpEngine.pathPrefix | trimSuffix "/" -}}
+{{- $_ := required "wmpEngine.pathPrefix must start with / and not be just /" (regexMatch "^/[^/]+" $pathPrefix | ternary $pathPrefix "") -}}
+{{- $_ := required "HTTPRoute parentRef name must be set" .Values.gateway.name -}}
+{{- $_ := required "HTTPRoute parentRef namespace must be set" .Values.gateway.namespace -}}
+{{- /* The Rust WMP engine (siros-wallet-core engine-server): the HTTP+SSE binding of the Wallet
+       Messaging Protocol (POST /wmp, GET /wmp/events). It runs beside the wallet-backend's own
+       engine (port 8082, WebSocket) and does not replace it: the clients choose per connection.
+       The engine holds no database and no signing key. It validates bearer tokens against the
+       wallet-backend's authorization server (JWKS over the cluster network, `iss` as the AS signs it)
+       and asks the PDP for trust decisions. */ -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wmp-engine
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict "reloader.stakater.com/auto" "true")) | nindent 2 }}
+spec:
+  replicas: {{ .Values.replicas.wmpEngine }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wmp-engine
+  template:
+    metadata:
+      {{- include "siros-id.labels" (list . (dict "app.kubernetes.io/name" "wmp-engine")) | nindent 6 }}
+    spec:
+      {{- include "siros-id.topologySpreadConstraints" (list . "wmp-engine") | nindent 6 }}
+      {{- include "siros-id.imagePullSecrets" . | nindent 6 }}
+      automountServiceAccountToken: false
+      {{- include "siros-id.podSecurityContext" (dict "runAsUser" 65532) | nindent 6 }}
+      resources:
+        {{- toYamlPretty .Values.resources.wmpEngine | nindent 8 }}
+      containers:
+        - name: main
+          image: {{ .Values.images.wmpEngine | quote }}
+          {{- include "siros-id.imagePullPolicy" . | nindent 10 }}
+          {{- include "siros-id.containerSecurityContext" (dict) | nindent 10 }}
+          ports:
+            - name: http-main
+              containerPort: 8780
+          {{- include "siros-id.httpProbes" (dict "path" "/healthz" "port" "http-main" "readyPath" "/readyz") | nindent 10 }}
+          env:
+            # Bearer-token validation: the wallet-backend's AS publishes its JWKS under /auth/.well-known/
+            # and stamps `iss` with its public origin, which differs from the in-cluster URL the engine
+            # fetches the JWKS from. The AS issues tokens per client (wallet-frontend, wallet-backend, ...),
+            # so no audience is pinned (set but empty).
+            - name: ENGINE_AS_EXTERNAL_URL
+              value: http://wallet-backend
+            - name: ENGINE_AS_JWKS_URL
+              value: http://wallet-backend/auth/.well-known/jwks.json
+            - name: ENGINE_AS_ISSUER
+              value: https://{{ $hostnameWalletBackend }}
+            - name: ENGINE_AS_AUDIENCES
+              value: ""
+            # Trust: the engine appends /v1/evaluate to this URL.
+            - name: ENGINE_PDP_URL
+              value: {{ .Values.wmpEngine.pdpUrl | default .Values.pdp.externalUrl | quote }}
+            {{- with .Values.wmpEngine.pdpTokenSecret }}
+            - name: ENGINE_PDP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key }}
+            {{- end }}
+            # The in-cluster dials (the AS and the PDP) are plain http.
+            - name: ENGINE_ALLOW_PLAINTEXT
+              value: "true"
+            - name: ENGINE_PRINCIPAL_MODE
+              value: {{ .Values.wmpEngine.principalMode | quote }}
+            - name: ENGINE_MAX_CONCURRENT_FLOWS
+              value: {{ .Values.wmpEngine.maxConcurrentFlows | quote }}
+            {{- with .Values.wmpEngine.extraEnv }}
+            {{- toYamlPretty . | nindent 12 }}
+            {{- end }}
+
+---
+{{ include "siros-id.podDisruptionBudget" (list . (dict "name" "wmp-engine" "minAvailable" .Values.podDisruptionBudget.wmpEngine.minAvailable)) }}
+
+---
+{{ include "siros-id.service" (list . (dict "name" "wmp-engine" "ports" (list (dict "name" "http-main" "port" 80 "targetPort" 8780)))) }}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: wmp-engine
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: wmp-engine
+  ingress:
+    - ports:
+        - port: http-main
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: wallet-backend
+      ports:
+        - port: http-main
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: pdp
+      ports:
+        - port: http-main
+    # The issuer and verifier services a flow names, over their public hostnames.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except: {{- include "siros-id.reservedNetworks.v4" . | nindent 14 }}
+        - ipBlock:
+            cidr: "::/0"
+            except: {{- include "siros-id.reservedNetworks.v6" . | nindent 14 }}
+
+---
+{{- /* The engine's endpoints on the wallet-backend hostname, under a path prefix that the gateway strips:
+       https://<wallet-backend host>/wmp-engine/wmp -> POST /wmp, /wmp-engine/wmp/events -> GET /wmp/events,
+       /wmp-engine/healthz and /wmp-engine/readyz. The AS issuer is the same origin, so a wallet reaches the
+       backend, its AS and the engine at one hostname. A separate HTTPRoute, merged with the wallet-backend's
+       by the gateway: the longer path prefix wins over the backend's catch-all rule. */}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: wmp-engine
+  namespace: {{ $ns }}
+  {{- include "siros-id.labels" (list . (dict)) | nindent 2 }}
+  {{- include "siros-id.annotations" (list . (dict)) | nindent 2 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+  hostnames:
+    - {{ $hostnameWalletBackend }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ $pathPrefix }}
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      {{- with .Values.wmpEngine.route.timeouts }}
+      timeouts: {{- toYamlPretty . | nindent 8 }}
+      {{- end }}
+      backendRefs:
+        - name: wmp-engine
+          port: 80
+{{- end -}}

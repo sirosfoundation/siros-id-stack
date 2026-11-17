@@ -167,6 +167,11 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: issuer-apigw
+        {{- if .Values.wmpEngine.enabled }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: wmp-engine
+        {{- end }}
       ports:
         - port: http-main
   egress:
