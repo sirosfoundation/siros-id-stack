@@ -32,12 +32,225 @@
           }
         ]
       },
+      "birth_date": {
+        "mandatory": true,
+        "value_type": "full-date",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Date of birth"
+          }
+        ]
+      },
+      "birth_place": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Place of birth"
+          }
+        ]
+      },
+      "nationalities": {
+        "mandatory": true,
+        "value_type": "array",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Nationalities"
+          }
+        ]
+      },
+      "expiry_date": {
+        "mandatory": true,
+        "value_type": "tdate",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Expiry date"
+          }
+        ]
+      },
+      "issuing_authority": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Issuing authority"
+          }
+        ]
+      },
+      "issuing_country": {
+        "mandatory": true,
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Issuing country"
+          }
+        ]
+      },
+      "issuance_date": {
+        "value_type": "tdate",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Issuance date"
+          }
+        ]
+      },
+      "issuing_jurisdiction": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Issuing jurisdiction"
+          }
+        ]
+      },
+      "document_number": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Document number"
+          }
+        ]
+      },
+      "administrative_number": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Personal administrative number"
+          }
+        ]
+      },
+      "portrait": {
+        "value_type": "bstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Portrait"
+          }
+        ]
+      },
+      "sex": {
+        "value_type": "uint",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Sex"
+          }
+        ]
+      },
+      "family_name_birth": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Family name at birth"
+          }
+        ]
+      },
+      "given_name_birth": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Given name at birth"
+          }
+        ]
+      },
+      "email_address": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Email address"
+          }
+        ]
+      },
+      "mobile_phone_number": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Mobile phone number"
+          }
+        ]
+      },
+      "resident_address": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident address"
+          }
+        ]
+      },
+      "resident_country": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident country"
+          }
+        ]
+      },
+      "resident_state": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident state/province"
+          }
+        ]
+      },
+      "resident_city": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident city"
+          }
+        ]
+      },
+      "resident_postal_code": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident postal code"
+          }
+        ]
+      },
+      "resident_street": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident street"
+          }
+        ]
+      },
+      "resident_house_number": {
+        "value_type": "tstr",
+        "display": [
+          {
+            "locale": "en-US",
+            "name": "Resident house number"
+          }
+        ]
+      },
       "age_over_18": {
         "value_type": "bool",
         "display": [
           {
             "locale": "en-US",
-            "name": "Age over 18?"
+            "name": "Age over 18"
           }
         ]
       },

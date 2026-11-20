@@ -116,6 +116,7 @@ apigw:
     datastore:
       {{- if .Values.issuer.datastoreImport.documents }}
       import:
+        replace_existing: true
         file_paths:
           {{- range $key, $value := .Values.issuer.datastoreImport.documents }}
           - /documents/{{ $key }}.json
@@ -129,6 +130,7 @@ apigw:
         {{- range $id, $data := . }}
         {{ $id | quote }}:
           auth_provider: {{ $data.issuance.authProvider | quote }}
+          authentic_source: {{ $data.issuance.authOptions.identityMappingAuthenticSource | quote }}
           {{- if eq $data.issuance.authProvider "oidc" }}
           auth_claims: {{- $data.issuance.authOptions.claims | toYamlPretty | nindent 12 }}
           {{- else if eq $data.issuance.authProvider "openid4vp" }}

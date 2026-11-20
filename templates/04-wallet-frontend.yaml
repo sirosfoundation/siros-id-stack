@@ -223,6 +223,10 @@ spec:
               value: debug
             - name: WIA_ENABLED
               value: "true"
+            - name: ALLOWED_TRANSPORTS
+              value: websocket
+            - name: TRANSPORT_PREFERENCE
+              value: websocket
           command:
             - /bin/sh
             - -c

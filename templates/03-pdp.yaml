@@ -114,6 +114,11 @@ spec:
             - name: http-main
               containerPort: 8080
           {{- include "siros-id.httpProbes" (dict "path" "/healthz" "port" "http-main" "readyPath" "/readyz") | nindent 10 }}
+          # Work-around: Server port is defined as environment variable in container image,
+          # which takes precedence over values defined in configuration file
+          env:
+            - name: GT_PORT
+              value: "8080"
           volumeMounts:
             - name: main-config
               mountPath: /main-config
