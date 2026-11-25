@@ -26,7 +26,11 @@ data:
   wellknownAndroidPackageNamesAndFingerprints: {{ .Values.walletFrontend.wellknownAndroidPackageNamesAndFingerprints | default "" | quote }}
   {{- if .Values.walletBackend.oidcGate }}
   oidcGateOpUrl: {{ printf "%s %s" .Values.walletBackend.oidcGate.registration_op.issuer .Values.walletFrontend.extraCspConnectUrls | quote }}
+  {{- else }}
+  oidcGateOpUrl: ""
   {{- end }}
+  scanPhysicalIdEnabled: "{{ .Values.walletFrontend.scanPhysicalId.enabled }}"
+  facetecApiUrl: {{ .Values.walletFrontend.scanPhysicalId.facetecApiUrl | quote }}
 
 ---
 apiVersion: v1
@@ -212,13 +216,11 @@ spec:
                   key: logoDarkDataUrl
             - name: WALLET_COMPANION_INTEGRATION
               value: "true"
-            {{- if .Values.walletBackend.oidcGate }}
             - name: OIDC_GATE_OP_URL
               valueFrom:
                 configMapKeyRef:
                   name: wallet-frontend-main
                   key: oidcGateOpUrl
-            {{- end }}
             - name: LOG_LEVEL
               value: debug
             - name: WIA_ENABLED
@@ -227,6 +229,16 @@ spec:
               value: websocket
             - name: TRANSPORT_PREFERENCE
               value: websocket
+            - name: SCAN_PHYSICAL_ID_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: wallet-frontend-main
+                  key: scanPhysicalIdEnabled
+            - name: FACETEC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: wallet-frontend-main
+                  key: facetecApiUrl
           command:
             - /bin/sh
             - -c

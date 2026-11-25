@@ -340,6 +340,9 @@ walletFrontend:
   logoLightDataUrl: ""
   logoDarkDataUrl: ""
   theme: ""
+  scanPhysicalId:
+    enabled: false
+    facetecApiUrl: ""
 
 # go-r2ps-service (WSCA-BE / Remote PKCS#11 Signing Service)
 r2ps:
