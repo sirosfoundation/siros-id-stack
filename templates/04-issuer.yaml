@@ -92,8 +92,8 @@ apigw:
         logo:
           uri: {{ include "siros-id.branding.logoDataUrl" . | quote }}
           alt_text: Logotype for issuer
-  {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
   {{- include "siros-id.vc.config.walletAttestation" .Values.issuer.walletAttestation | nindent 2 }}
+  {{- if (or .Values.issuer.identitymappingImport.identities .Values.issuer.identitymappingImport.users) }}
   identity_mapping_import:
     file_paths:
       {{- range $key, $value := .Values.issuer.identitymappingImport.identities }}
