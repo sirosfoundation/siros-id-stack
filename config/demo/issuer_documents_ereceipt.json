@@ -1,0 +1,206 @@
+{
+  "100": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "ereceipt",
+      "document_id": "document_id_ereceipt_100",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_100"
+    ],
+    "document_data": {
+      "attestation_legal_category": "non-qualified-EAA",
+      "type": "PURCHASE",
+      "receipt_number": "R-2026-10-02-000100",
+      "receipt_timestamp": "2026-10-02T12:41:08Z",
+      "currency_iso_code": "EUR",
+      "total_price_exc_vat": 2840,
+      "total_vat_amount": 710,
+      "total_price_inc_vat": 3550,
+      "merchant": {
+        "name": "Kafé Bokbindaren AB",
+        "company_id": "SE5569123456",
+        "branch": {
+          "id": "BR-001",
+          "pos_id": "POS-03",
+          "name": "Kafé Bokbindaren AB"
+        },
+        "address": {
+          "street_address": "Drottninggatan 71",
+          "city": "Stockholm",
+          "zip_code": "111 36",
+          "country": "SE"
+        }
+      },
+      "products": [
+        {
+          "name": "Lunch, team of four",
+          "quantity": "4",
+          "quantity_code": "H87",
+          "unit_price_inc_vat": 700,
+          "total_amount_exc_vat": 2240,
+          "total_amount_inc_vat": 2800,
+          "vats": [
+            {
+              "vat_rate": "25",
+              "vat_amount": 560,
+              "total_amount_exc_vat": 2240,
+              "total_amount_inc_vat": 2800
+            }
+          ],
+          "categorization": {
+            "category": "F&B",
+            "department": "Restaurant"
+          }
+        },
+        {
+          "name": "Coffee",
+          "quantity": "5",
+          "quantity_code": "H87",
+          "unit_price_inc_vat": 150,
+          "total_amount_exc_vat": 600,
+          "total_amount_inc_vat": 750,
+          "vats": [
+            {
+              "vat_rate": "25",
+              "vat_amount": 150,
+              "total_amount_exc_vat": 600,
+              "total_amount_inc_vat": 750
+            }
+          ]
+        }
+      ],
+      "vats": [
+        {
+          "vat_rate": "25",
+          "total_vat_amount": 710,
+          "total_amount_exc_vat": 2840,
+          "total_amount_inc_vat": 3550,
+          "vat_code": "S"
+        }
+      ],
+      "payments": [
+        {
+          "type": "CARD",
+          "amount": 3550,
+          "attributes": {
+            "masked_pan": "411111******1111",
+            "authorization_code": "AB12CD"
+          }
+        }
+      ],
+      "verifications": [
+        {
+          "type": "EMV",
+          "version": "1.0",
+          "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEdemo00000000000000000000000000000000000000000000000000000000000000000000000000000000000==",
+          "transaction_id": "TXN-2026-10-02-100"
+        }
+      ],
+      "free_text": "Client lunch"
+    }
+  },
+  "102": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "ereceipt",
+      "document_id": "document_id_ereceipt_102",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_102"
+    ],
+    "document_data": {
+      "attestation_legal_category": "non-qualified-EAA",
+      "type": "PURCHASE",
+      "receipt_number": "R-2026-10-02-000102",
+      "receipt_timestamp": "2026-10-02T12:41:08Z",
+      "currency_iso_code": "EUR",
+      "total_price_exc_vat": 2840,
+      "total_vat_amount": 710,
+      "total_price_inc_vat": 3550,
+      "merchant": {
+        "name": "Hafenkantine Duisburg GmbH",
+        "company_id": "DE290112233",
+        "branch": {
+          "id": "BR-001",
+          "pos_id": "POS-03",
+          "name": "Hafenkantine Duisburg GmbH"
+        },
+        "address": {
+          "street_address": "Am Außenhafen 3",
+          "city": "Duisburg",
+          "zip_code": "47059",
+          "country": "DE"
+        }
+      },
+      "products": [
+        {
+          "name": "Lunch, team of four",
+          "quantity": "4",
+          "quantity_code": "H87",
+          "unit_price_inc_vat": 700,
+          "total_amount_exc_vat": 2240,
+          "total_amount_inc_vat": 2800,
+          "vats": [
+            {
+              "vat_rate": "25",
+              "vat_amount": 560,
+              "total_amount_exc_vat": 2240,
+              "total_amount_inc_vat": 2800
+            }
+          ],
+          "categorization": {
+            "category": "F&B",
+            "department": "Restaurant"
+          }
+        },
+        {
+          "name": "Coffee",
+          "quantity": "5",
+          "quantity_code": "H87",
+          "unit_price_inc_vat": 150,
+          "total_amount_exc_vat": 600,
+          "total_amount_inc_vat": 750,
+          "vats": [
+            {
+              "vat_rate": "25",
+              "vat_amount": 150,
+              "total_amount_exc_vat": 600,
+              "total_amount_inc_vat": 750
+            }
+          ]
+        }
+      ],
+      "vats": [
+        {
+          "vat_rate": "25",
+          "total_vat_amount": 710,
+          "total_amount_exc_vat": 2840,
+          "total_amount_inc_vat": 3550,
+          "vat_code": "S"
+        }
+      ],
+      "payments": [
+        {
+          "type": "CARD",
+          "amount": 3550,
+          "attributes": {
+            "masked_pan": "411111******1111",
+            "authorization_code": "AB12CD"
+          }
+        }
+      ],
+      "verifications": [
+        {
+          "type": "EMV",
+          "version": "1.0",
+          "public_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEdemo00000000000000000000000000000000000000000000000000000000000000000000000000000000000==",
+          "transaction_id": "TXN-2026-10-02-102"
+        }
+      ],
+      "free_text": "Client lunch"
+    }
+  }
+}

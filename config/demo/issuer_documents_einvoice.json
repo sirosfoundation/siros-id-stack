@@ -1,0 +1,122 @@
+{
+  "100": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "einvoice",
+      "document_id": "document_id_einvoice_100",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_100"
+    ],
+    "document_data": {
+      "cryptographically_bound_to": "uri:eu.ebw.oid.1",
+      "attestation_legal_category": "non-qualified-EAA",
+      "invoicePayloadHash": "sha256:9f2c8b1e7d43a0c5f6e9b2d1a4c7e0f3b6d9a2c5e8f1b4d7a0c3e6f9b2d5a8c1",
+      "invoiceFormat": "EN16931",
+      "invoiceNumber": "INV-2026-1000417",
+      "issueDate": "2026-10-02",
+      "seller": {
+        "name": "Nordlys Kontorsservice AB",
+        "identifier": {
+          "euid": "SE556998877601"
+        },
+        "vat": "SE556998877601",
+        "country": "SE"
+      },
+      "buyer": {
+        "name": "Aurora Analytics AB",
+        "identifier": {
+          "euid": "SEBOLAG.5591234567"
+        },
+        "vat": "SE559123456701",
+        "country": "SE"
+      },
+      "BuyerElectronicAddress": "0009:SE559123456701",
+      "amountDueForPayment": "14250.00",
+      "invoiceTotalVatAmount": "2850.00",
+      "InvoiceCurrencyCode": "EUR",
+      "taxSubtotal": [
+        {
+          "taxCategoryCode": "S",
+          "taxableAmount": "11400.00",
+          "taxPercent": "25",
+          "taxAmount": "2850.00"
+        }
+      ],
+      "paymentInstructions": {
+        "paymentMeansCode": "58",
+        "paymentMeansText": "SEPA Credit Transfer",
+        "paymentAccountIdentifier": "NL91ABNA0417164300"
+      },
+      "evidenceReferences": [
+        {
+          "evidenceReferencesType": "purchase_order",
+          "evidenceUri": "https://erp.example.org/documents/po-2026-000045",
+          "evidenceHash": "sha256:3a7c9e1b5d8f2a4c6e0b3d7f9a1c5e8b2d4f6a0c3e7b9d1f5a8c2e6b0d4f7a3c"
+        }
+      ],
+      "invoiceLifecycleStatus": "active"
+    }
+  },
+  "102": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "einvoice",
+      "document_id": "document_id_einvoice_102",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_102"
+    ],
+    "document_data": {
+      "cryptographically_bound_to": "uri:eu.ebw.oid.1",
+      "attestation_legal_category": "non-qualified-EAA",
+      "invoicePayloadHash": "sha256:9f2c8b1e7d43a0c5f6e9b2d1a4c7e0f3b6d9a2c5e8f1b4d7a0c3e6f9b2d5a8c1",
+      "invoiceFormat": "EN16931",
+      "invoiceNumber": "INV-2026-1020417",
+      "issueDate": "2026-10-02",
+      "seller": {
+        "name": "Westfalen Palettenwerk GmbH",
+        "identifier": {
+          "euid": "DE811234567"
+        },
+        "vat": "DE811234567",
+        "country": "DE"
+      },
+      "buyer": {
+        "name": "Rheinmark Logistik GmbH",
+        "identifier": {
+          "euid": "DEHRB.B123456"
+        },
+        "vat": "DE123456789",
+        "country": "DE"
+      },
+      "BuyerElectronicAddress": "0009:DE123456789",
+      "amountDueForPayment": "14250.00",
+      "invoiceTotalVatAmount": "2850.00",
+      "InvoiceCurrencyCode": "EUR",
+      "taxSubtotal": [
+        {
+          "taxCategoryCode": "S",
+          "taxableAmount": "11400.00",
+          "taxPercent": "25",
+          "taxAmount": "2850.00"
+        }
+      ],
+      "paymentInstructions": {
+        "paymentMeansCode": "58",
+        "paymentMeansText": "SEPA Credit Transfer",
+        "paymentAccountIdentifier": "NL91ABNA0417164300"
+      },
+      "evidenceReferences": [
+        {
+          "evidenceReferencesType": "purchase_order",
+          "evidenceUri": "https://erp.example.org/documents/po-2026-000045",
+          "evidenceHash": "sha256:3a7c9e1b5d8f2a4c6e0b3d7f9a1c5e8b2d4f6a0c3e7b9d1f5a8c2e6b0d4f7a3c"
+        }
+      ],
+      "invoiceLifecycleStatus": "active"
+    }
+  }
+}

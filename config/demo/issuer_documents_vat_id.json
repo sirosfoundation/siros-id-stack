@@ -1,0 +1,120 @@
+{
+  "100": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "vat_id",
+      "document_id": "document_id_vat_id_100",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_100"
+    ],
+    "document_data": {
+      "attestation_legal_category": "PuB-EAA",
+      "administrative_unit": {
+        "vat_id": "SE559123456701",
+        "name": "Aurora Analytics AB",
+        "registered_eu_cross_border_transactions": true,
+        "organisation_type": "Aktiebolag (AB)",
+        "validity_period": [
+          {
+            "start_date": "2020-01-15",
+            "end_date": "2027-12-31"
+          }
+        ],
+        "economic_operator": {
+          "legal_person": {
+            "legal_identifier": "SEBOLAG.5591234567",
+            "legal_name": "Aurora Analytics AB"
+          }
+        },
+        "address": {
+          "thoroughfare": "Sveavägen",
+          "location_designator": "44",
+          "post_code": "111 34",
+          "post_name": "Stockholm",
+          "admin_unit_l1": "Stockholms län",
+          "admin_unit_l2": "Stockholm"
+        },
+        "economic_activity": [
+          {
+            "nomenclature": "NACE",
+            "nomenclature_version": "Rev 2.1",
+            "id": "62.01",
+            "description": [
+              {
+                "language": "en-GB",
+                "value": "Computer programming activities"
+              }
+            ]
+          }
+        ]
+      },
+      "issuer": {
+        "authentic_source_country": "SE",
+        "vat_id_authentic_source": "Skatteverket",
+        "location_status": "https://vat.example.se/status/SE559123456701"
+      },
+      "trust_anchor": "https://trust.example.org/anchors/se/vat"
+    }
+  },
+  "102": {
+    "meta": {
+      "authentic_source": "MockTaxAuthority",
+      "scope": "vat_id",
+      "document_id": "document_id_vat_id_102",
+      "created_at": "0001-01-01T00:00:00Z"
+    },
+    "identity_mapping_ids": [
+      "authentic_source_person_id_102"
+    ],
+    "document_data": {
+      "attestation_legal_category": "PuB-EAA",
+      "administrative_unit": {
+        "vat_id": "DE123456789",
+        "name": "Rheinmark Logistik GmbH",
+        "registered_eu_cross_border_transactions": true,
+        "organisation_type": "Gesellschaft mit beschränkter Haftung (GmbH)",
+        "validity_period": [
+          {
+            "start_date": "2020-01-15",
+            "end_date": "2027-12-31"
+          }
+        ],
+        "economic_operator": {
+          "legal_person": {
+            "legal_identifier": "DEHRB.B123456",
+            "legal_name": "Rheinmark Logistik GmbH"
+          }
+        },
+        "address": {
+          "thoroughfare": "Hafenstraße",
+          "location_designator": "12",
+          "post_code": "47059",
+          "post_name": "Duisburg",
+          "admin_unit_l1": "Nordrhein-Westfalen",
+          "admin_unit_l2": "Duisburg"
+        },
+        "economic_activity": [
+          {
+            "nomenclature": "NACE",
+            "nomenclature_version": "Rev 2.1",
+            "id": "62.01",
+            "description": [
+              {
+                "language": "en-GB",
+                "value": "Computer programming activities"
+              }
+            ]
+          }
+        ]
+      },
+      "issuer": {
+        "authentic_source_country": "DE",
+        "vat_id_authentic_source": "Bundeszentralamt für Steuern",
+        "location_status": "https://vat.example.de/status/DE123456789"
+      },
+      "trust_anchor": "https://trust.example.org/anchors/de/vat"
+    }
+  }
+}

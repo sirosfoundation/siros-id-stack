@@ -159,6 +159,61 @@ features:
                 - given_name
                 - family_name
                 - birthdate
+    "vat_id":
+      # rb-vat-id - VAT Identification: the tax administration's confirmation
+      # that a VAT number is valid and whose it is.
+      vct: uri:eu.eudi.vat.2
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_vat_id.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
+    "einvoice":
+      # rb-eInvoice - eInvoice: an invoice from a seller to a buyer. The demo
+      # subject holds it as the buyer.
+      vct: eu.we-build:einvoice:1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_einvoice.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
+    "ereceipt":
+      # rb-e-receipt - eReceipt: a till receipt. Issued here from the
+      # datastore like every other type, which is not how a real eReceipt is
+      # issued; see README-webuild.md, "What the demo does not show".
+      vct: eu.we-build.ereceipt.1
+      format: dc+sd-jwt
+      vctm:
+        file: "config/demo/vctm_ereceipt.json"
+      issuance:
+        authProvider: openid4vp
+        source: "datastore"
+        authOptions:
+          identityMappingAuthenticSource: "MockTaxAuthority"
+          scopes:
+            demo_pid_rb_1_5:
+              claims:
+                - given_name
+                - family_name
+                - birthdate
 
 issuer:
   # Current limitation: Identity mappings are only created using this feature, never updated.
@@ -190,6 +245,12 @@ issuer:
         file: "config/demo/issuer_documents_eu_poa.json"
       iban_ov:
         file: "config/demo/issuer_documents_iban_ov.json"
+      vat_id:
+        file: "config/demo/issuer_documents_vat_id.json"
+      einvoice:
+        file: "config/demo/issuer_documents_einvoice.json"
+      ereceipt:
+        file: "config/demo/issuer_documents_ereceipt.json"
     users:
       - "100"
       - "102"
