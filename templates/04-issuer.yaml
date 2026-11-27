@@ -130,7 +130,21 @@ apigw:
         {{- range $id, $data := . }}
         {{ $id | quote }}:
           auth_provider: {{ $data.issuance.authProvider | quote }}
-          authentic_source: {{ $data.issuance.authOptions.identityMappingAuthenticSource | quote }}
+          {{- /*
+            vc requires authentic_source on every datastore scope: it is what
+            the identity lookup matches a presented PID (or OIDC subject)
+            against, and apigw panics at startup without it
+            (authentic_source_required_for_identity_mapping), naming every
+            offending scope. A tenant whose documents all come from one source
+            names it once in issuer.datastoreImport.authenticSource rather than
+            on each of its credential types; a type that names its own still
+            wins. Omitted when neither is set, since rendering the key with no
+            value only moves the same vc rejection behind a null.
+          */}}
+          {{- $authenticSource := default $.Values.issuer.datastoreImport.authenticSource $data.issuance.authOptions.identityMappingAuthenticSource }}
+          {{- if $authenticSource }}
+          authentic_source: {{ $authenticSource | quote }}
+          {{- end }}
           {{- if eq $data.issuance.authProvider "oidc" }}
           auth_claims: {{- $data.issuance.authOptions.claims | toYamlPretty | nindent 12 }}
           {{- else if eq $data.issuance.authProvider "openid4vp" }}

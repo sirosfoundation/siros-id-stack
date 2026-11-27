@@ -151,6 +151,12 @@ issuer:
     identities: {}
     users: []
   datastoreImport:
+    # Default authentic source for datastore-sourced credential types, written
+    # to each scope's authentic_source where the type does not name its own in
+    # features.credentialTypes.<id>.issuance.authOptions.identityMappingAuthenticSource.
+    # vc requires one on every datastore scope, so a tenant whose documents all
+    # come from one source states it here once instead of per type.
+    authenticSource: ""
     documents: {}
     users: []
   datasourceAssertion: {}
