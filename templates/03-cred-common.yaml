@@ -9,5 +9,18 @@ metadata:
 data:
   .empty: "I am here so that the configmap won't ever be empty"
   {{- range $id, $data := .Values.features.credentialTypes }}
-  {{ $id }}.json: | {{- include "siros-id.dataOrFile" (list $ $data.vctm) | nindent 4 }}
+  {{- /*
+    A credential type carries exactly one schema document: a VCTM for
+    dc+sd-jwt, or an MDDL schema for an ISO 18013-5 mdoc type. Both land here
+    under the same <id>.json name, which is what the issuer's vctm_file_path
+    and mddl_file_path already point at.
+
+    This used to read .vctm unconditionally, so an mdoc type - which has no
+    .vctm - failed the render outright with "Object must contain non-empty
+    .data or .file property".
+  */}}
+  {{- $schema := $data.vctm | default $data.mdocSchema }}
+  {{- if $schema }}
+  {{ $id }}.json: | {{- include "siros-id.dataOrFile" (list $ $schema) | nindent 4 }}
+  {{- end }}
   {{- end }}
