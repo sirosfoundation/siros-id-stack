@@ -1,12 +1,18 @@
 {
   "vct": "urn:eudi:eucc:1",
-  "name": "EWC - EU Company Certificate",
+  "name": "EU Company Certificate",
   "description": "Schema for EU Company Certificate - EWC WP3",
   "display": [
     {
       "locale": "en-US",
       "name": "EU Company Certificate",
-      "description": "Schema for EU Company Certificate - EWC WP3"
+      "description": "The company's entry in its national business register.",
+      "rendering": {
+        "simple": {
+          "background_color": "#14532D",
+          "text_color": "#FFFFFF"
+        }
+      }
     }
   ],
   "claims": [
@@ -185,11 +191,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Authentic Source Name"
+          "label": "Business register"
         }
       ],
       "description": "Name of issuer from the MS that issued the ODI instance",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "authentic_source_name"
     },
     {
       "path": [
@@ -210,11 +217,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Legal Form Type"
+          "label": "Legal form"
         }
       ],
       "description": "Legal form of the company",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "legal_form_type"
     },
     {
       "path": [
@@ -261,11 +269,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Registration Member State"
+          "label": "Member State"
         }
       ],
       "description": "Member State where the company is registered, Alpha-2 country code, as defined in ISO 3166-1",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "registration_member_state"
     },
     {
       "path": [
@@ -274,11 +283,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Legal Person Status"
+          "label": "Status"
         }
       ],
       "description": "Status of the company as defined in national law and where recorded in the national register",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "legal_person_status"
     },
     {
       "path": [
@@ -313,11 +323,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Registration Date"
+          "label": "Registered"
         }
       ],
       "description": "Date of registration of the company",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "registration_date"
     },
     {
       "path": [
@@ -416,11 +427,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Legal Person Name"
+          "label": "Company name"
         }
       ],
       "description": "Official current legal person name as registered in the business register.",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "legal_person_name"
     },
     {
       "path": [
@@ -429,11 +441,12 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Legal Person Id"
+          "label": "Company identifier (EUID)"
         }
       ],
       "description": "Unique id for organisations in EUID structure",
-      "mandatory": true
+      "mandatory": true,
+      "svg_id": "legal_person_id"
     },
     {
       "path": [
@@ -455,7 +468,7 @@
       "display": [
         {
           "locale": "en-US",
-          "label": "Issuing Country"
+          "label": "Issuing country"
         }
       ],
       "description": "Alpha-2 country code, as defined in ISO 3166-1, of the issuing country or territory.",

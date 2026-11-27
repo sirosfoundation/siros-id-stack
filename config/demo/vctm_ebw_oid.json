@@ -28,7 +28,8 @@
         }
       ],
       "mandatory": true,
-      "sd": "never"
+      "sd": "never",
+      "svg_id": "id"
     },
     {
       "path": [
@@ -42,7 +43,8 @@
         }
       ],
       "mandatory": true,
-      "sd": "never"
+      "sd": "never",
+      "svg_id": "attestation_legal_category"
     },
     {
       "path": [
@@ -56,7 +58,8 @@
         }
       ],
       "mandatory": true,
-      "sd": "never"
+      "sd": "never",
+      "svg_id": "issuing_authority"
     },
     {
       "path": [
@@ -70,7 +73,8 @@
         }
       ],
       "mandatory": true,
-      "sd": "never"
+      "sd": "never",
+      "svg_id": "name"
     },
     {
       "path": [
@@ -83,7 +87,8 @@
           "description": "Administrative expiry date following ISO 8601."
         }
       ],
-      "sd": "never"
+      "sd": "never",
+      "svg_id": "date_of_expiry"
     },
     {
       "path": [
@@ -97,7 +102,8 @@
         }
       ],
       "mandatory": true,
-      "sd": "never"
+      "sd": "never",
+      "svg_id": "issuing_country"
     },
     {
       "path": [

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="365" height="243" viewBox="0 0 365 243" fill="none">
+<!-- Starting point for design. Double-brace placeholders bind to claims by svg_id; see make_templates.py. The wallet substitutes across the whole file, comments included, so do not write one here. -->
+<defs>
+  <linearGradient id="bg_ebw_oid" x1="0" y1="0" x2="0" y2="243" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F7F9FC"/>
+  </linearGradient>
+  <clipPath id="card_ebw_oid"><rect x="0.5" y="0.5" width="364" height="242" rx="14.5"/></clipPath>
+</defs>
+<rect x="0.5" y="0.5" width="364" height="242" rx="14.5" fill="url(#bg_ebw_oid)" stroke="#BDBDBD"/>
+<g clip-path="url(#card_ebw_oid)"><rect x="0" y="0" width="6" height="243" fill="#1A365D"/></g>
+<text x="26" y="32" font-family="Arial" font-size="9" fill="#1A365D" letter-spacing="0.8">BUSINESS WALLET OWNER ID</text>
+<text x="26" y="66" font-family="Arial" font-size="14" fill="#0C0E11" font-weight="bold">{{name}}</text>
+<text x="26" y="85" font-family="Arial" font-size="11" fill="#4A5568">{{id}}</text>
+<line x1="26" y1="112" x2="339" y2="112" stroke="#E2E8F0"/>
+<text x="26" y="136" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">ISSUING AUTHORITY</text>
+<text x="26" y="150" font-family="Arial" font-size="11" fill="#1A202C">{{issuing_authority}}</text>
+<text x="190" y="136" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">COUNTRY</text>
+<text x="190" y="150" font-family="Arial" font-size="11" fill="#1A202C">{{issuing_country}}</text>
+<text x="26" y="170" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">EXPIRES</text>
+<text x="26" y="184" font-family="Arial" font-size="11" fill="#1A202C">{{date_of_expiry}}</text>
+<text x="190" y="170" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">ATTESTATION CATEGORY</text>
+<text x="190" y="184" font-family="Arial" font-size="11" fill="#1A202C">{{attestation_legal_category}}</text>
+<rect x="12" y="194" width="342" height="38" rx="8" fill="#EEF2F8"/>
+<text x="26" y="211" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">ISSUED BY</text>
+<text x="26" y="225" font-family="Arial" font-size="11" fill="#1A202C">{{issuing_authority}}</text>
+</svg>

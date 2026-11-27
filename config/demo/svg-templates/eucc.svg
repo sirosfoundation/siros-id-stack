@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="365" height="243" viewBox="0 0 365 243" fill="none">
+<!-- Starting point for design. Double-brace placeholders bind to claims by svg_id; see make_templates.py. The wallet substitutes across the whole file, comments included, so do not write one here. -->
+<defs>
+  <linearGradient id="bg_eucc" x1="0" y1="0" x2="0" y2="243" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F7F9FC"/>
+  </linearGradient>
+  <clipPath id="card_eucc"><rect x="0.5" y="0.5" width="364" height="242" rx="14.5"/></clipPath>
+</defs>
+<rect x="0.5" y="0.5" width="364" height="242" rx="14.5" fill="url(#bg_eucc)" stroke="#BDBDBD"/>
+<g clip-path="url(#card_eucc)"><rect x="0" y="0" width="6" height="243" fill="#14532D"/></g>
+<text x="26" y="32" font-family="Arial" font-size="9" fill="#14532D" letter-spacing="0.8">EU COMPANY CERTIFICATE</text>
+<text x="26" y="66" font-family="Arial" font-size="14" fill="#0C0E11" font-weight="bold">{{legal_person_name}}</text>
+<text x="26" y="85" font-family="Arial" font-size="11" fill="#4A5568">{{legal_person_id}}</text>
+<line x1="26" y1="112" x2="339" y2="112" stroke="#E2E8F0"/>
+<text x="26" y="136" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">LEGAL FORM</text>
+<text x="26" y="150" font-family="Arial" font-size="11" fill="#1A202C">{{legal_form_type}}</text>
+<text x="190" y="136" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">STATUS</text>
+<text x="190" y="150" font-family="Arial" font-size="11" fill="#1A202C">{{legal_person_status}}</text>
+<text x="26" y="170" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">REGISTERED</text>
+<text x="26" y="184" font-family="Arial" font-size="11" fill="#1A202C">{{registration_date}}</text>
+<text x="190" y="170" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">MEMBER STATE</text>
+<text x="190" y="184" font-family="Arial" font-size="11" fill="#1A202C">{{registration_member_state}}</text>
+<rect x="12" y="194" width="342" height="38" rx="8" fill="#EDF4EF"/>
+<text x="26" y="211" font-family="Arial" font-size="9" fill="#718096" letter-spacing="0.8">BUSINESS REGISTER</text>
+<text x="26" y="225" font-family="Arial" font-size="11" fill="#1A202C">{{authentic_source_name}}</text>
+</svg>
